@@ -43,8 +43,18 @@ temp/
 
 # Python
 venv/
+.venv/
+**/venv/
+**/.venv/
 __pycache__/
+**/__pycache__/
 *.pyc
+**/*.py[cod]
+**/*.py
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
 
 # OCR Temp Files
 temp/
