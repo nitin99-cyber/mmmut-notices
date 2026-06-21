@@ -32,7 +32,6 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-!.env.example
 
 # vercel
 .vercel
@@ -41,28 +40,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 temp/
-
-# Python
-venv/
-.venv/
-**/venv/
-**/.venv/
-__pycache__/
-**/__pycache__/
-*.pyc
-**/*.py[cod]
-
-# Test / tooling caches
-.pytest_cache/
-.mypy_cache/
-
-# OCR Temp Files
-temp/
-uploads/
-
-# Logs
-*.log
-
-# OS
-.DS_Store
-Thumbs.db
