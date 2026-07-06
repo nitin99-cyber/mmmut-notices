@@ -5,6 +5,7 @@ import {
 } from "@/lib/geminiProcessor";
 import { detectLargeNotice } from "@/lib/noticeRouter";
 import { getServerSupabase } from "@/lib/supabase";
+import { sendAdminNotification } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -102,6 +103,11 @@ export async function POST(request: Request) {
             .from("notices")
             .update({ whatsapp_message: finalMsg })
             .eq("id", dbResult.id);
+        }
+
+        // Send email notification to Admin (fire and forget)
+        if (dbResult?.id) {
+          sendAdminNotification(notice.title, dbResult.id, notice.whatsapp_message).catch(console.error);
         }
       }
     } catch (err) {
