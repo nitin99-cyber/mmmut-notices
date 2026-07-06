@@ -22,7 +22,6 @@
 import { getGeminiClient } from "./gemini";
 import { PDFDocument } from "pdf-lib";
 import { generateCalendarUrl, type CalendarEvent } from "./calendar";
-import { convertPdfToImageBase64 } from "./pdfToImage";
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -297,15 +296,10 @@ ${isLargeNotice ? "\n⚠️ This is a LARGE NOTICE — only the first page is pr
     method = "groq_vision";
 
     if (!imageBase64) {
-      console.log("Gemini Vision failed and OCR image missing. Converting PDF to image for Groq fallback...");
-      try {
-        imageBase64 = await convertPdfToImageBase64(pdfBuffer);
-      } catch (err) {
-        throw new Error(
-          "Gemini Vision failed, and fallback PDF-to-Image conversion for Groq also failed: " +
-            (err instanceof Error ? err.message : String(err))
-        );
-      }
+      throw new Error(
+        "Gemini Vision failed and no image is available for Groq Vision fallback. " +
+        "Ensure EasyOCR is running locally so it can provide image_base64, or fix Gemini API access."
+      );
     }
 
     raw = await callGroqVision(
