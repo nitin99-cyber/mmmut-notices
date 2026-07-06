@@ -48,3 +48,9 @@ This document tracks significant technical and architectural decisions made for 
 **Why:** Windows often struggles with global PATH configurations for Python packages. By explicitly invoking the virtual environment's Python executable from `package.json`, developers can run the entire monolithic dev stack (`npm run dev`) immediately after installing dependencies without manual shell activation or PATH troubleshooting.
 **Alternatives:**
 - Relying on global `uvicorn` command. *Rejected: frequently causes "not recognized as internal or external command" errors on Windows.*
+
+## 8. Node.js 22 for Scraper Actions
+**Decision:** Configure GitHub Actions to use Node.js 22 for running the automated scraper.
+**Why:** Supabase JavaScript Client v2 relies on native WebSockets for Realtime features. Native WebSockets were introduced officially in Node.js 22. Running the scraper on Node 20 resulted in "Node.js detected but native WebSocket not found" errors, crashing the automation.
+**Alternatives:**
+- Provide a custom WebSocket polyfill in Node 20. *Rejected: adds unnecessary dependencies and maintenance overhead when simply upgrading the action's Node version cleanly solves the issue.*

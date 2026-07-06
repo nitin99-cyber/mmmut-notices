@@ -125,26 +125,25 @@ The JSON must have this exact structure:
 
 Rules for whatsapp_message — use this EXACT template:
 
-📢 MMMUT NOTICE UPDATE
+📢 *MMMUT NOTICE UPDATE*
 
-🎯 Audience: [comma-separated audience]
+🎯 *Audience:* _[comma-separated audience]_
 
-📌 Notice: [Title]
+📌 *Notice:* *[Title]*
 
-📝 Summary:
+📝 *Summary:*
 [Summary text]
 
-📖 Full Notice (Translated):
-[Complete english translation text here]
+📖 *Full Notice (Translated):*
+_[Complete english translation text here]_
 
-📅 Important Dates:
+📅 *Important Dates:*
 • [date 1]
 • [date 2]
 
-🗓️ Add to Calendar:
-[For each calendar event, include: "• [Event title] — [link]"]
+[CALENDAR_LINKS]
 
-🔗 Read Full Notice:
+🔗 *Read Full Notice:*
 [NOTICE_LINK]
 
 Rules for calendar_events:
@@ -541,19 +540,16 @@ function enrichWhatsAppMessage(
 ): string {
   let enriched = message;
 
-  // Add calendar links if AI didn't include them
-  if (
-    calendarEvents.length > 0 &&
-    !enriched.includes("Add to Calendar")
-  ) {
-    const calSection = calendarEvents
-      .map(
-        (e) =>
-          `• ${e.title} (${e.date})\n  📅 ${e.calendar_url}`
-      )
-      .join("\n");
-
-    enriched += `\n\n🗓️ Add to Calendar:\n${calSection}`;
+  // Replace calendar links placeholder
+  if (enriched.includes("[CALENDAR_LINKS]")) {
+    if (calendarEvents.length > 0) {
+      const calSection = calendarEvents
+        .map((e) => `• *${e.title}* (${e.date})\n  🗓️ ${e.calendar_url}`)
+        .join("\n\n");
+      enriched = enriched.replace("[CALENDAR_LINKS]", `📅 *Add to Calendar:*\n${calSection}`);
+    } else {
+      enriched = enriched.replace("[CALENDAR_LINKS]", ""); // Remove if no events
+    }
   }
 
   // Add PDF link for large notices
