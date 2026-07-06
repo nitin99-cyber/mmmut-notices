@@ -484,18 +484,18 @@ export default function AdminNoticesPage() {
                   <h3 style={styles.sectionTitle}>💬 WhatsApp Preview</h3>
                   <div style={styles.whatsappCard}>
                     <pre style={styles.whatsappText}>
-                      {result.pipeline.notice.whatsapp_message}
+                      {result.pipeline?.notice.whatsapp_message}
                     </pre>
                     <div style={styles.whatsappActions}>
                       <button 
                         style={styles.btnSecondary}
-                        onClick={() => navigator.clipboard.writeText(result.pipeline.notice.whatsapp_message)}
+                        onClick={() => navigator.clipboard.writeText(result.pipeline?.notice.whatsapp_message || '')}
                       >
                         📋 Copy
                       </button>
                       <button 
                         style={styles.btnWhatsApp}
-                        onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result.pipeline.notice.whatsapp_message)}`)}
+                        onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result.pipeline?.notice.whatsapp_message || '')}`)}
                       >
                         📱 WhatsApp
                       </button>

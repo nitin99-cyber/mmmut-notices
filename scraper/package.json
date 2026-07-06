@@ -1,0 +1,19 @@
+{
+  "name": "mmmut-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx src/index.ts",
+    "scrape:dry": "tsx src/index.ts --dry-run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.1",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0"
+  }
+}
