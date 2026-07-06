@@ -36,3 +36,15 @@ This document tracks significant technical and architectural decisions made for 
 **Alternatives:**
 - Let AI categorize and flag them as "Faculty". *Rejected: wastes AI tokens.*
 - Admin manually deletes them. *Rejected: increases admin workload.*
+
+## 6. Unconditional Email Delivery with WhatsApp CTA
+**Decision:** Admin notification emails (containing the AI-processed notice and a direct "Share to WhatsApp" CTA) are sent unconditionally, even if the Supabase database insert fails.
+**Why:** Environment variable misconfigurations (like missing or incorrect Supabase credentials) can easily cause the database save to fail. By uncoupling the email delivery from the database save, the admin never loses the generated AI output and can still publish the notice seamlessly using the CTA link, improving fault tolerance.
+**Alternatives:**
+- Only send email if DB save succeeds. *Rejected: could cause silent data loss of the processed AI output if Supabase goes down or is misconfigured.*
+
+## 7. Environment-Aware Python Execution for Localhost
+**Decision:** The Next.js `package.json` uses a relative path to the Python virtual environment (`.\venv\Scripts\python`) to launch the local EasyOCR service via `uvicorn`.
+**Why:** Windows often struggles with global PATH configurations for Python packages. By explicitly invoking the virtual environment's Python executable from `package.json`, developers can run the entire monolithic dev stack (`npm run dev`) immediately after installing dependencies without manual shell activation or PATH troubleshooting.
+**Alternatives:**
+- Relying on global `uvicorn` command. *Rejected: frequently causes "not recognized as internal or external command" errors on Windows.*

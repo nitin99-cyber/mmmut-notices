@@ -20,11 +20,7 @@
  */
 
 import { getGeminiClient } from "./gemini";
-import {
-  GoogleGenerativeAI,
-  HarmBlockThreshold,
-  HarmCategory,
-} from "@google/generative-ai";
+
 import { PDFDocument } from "pdf-lib";
 import { generateCalendarUrl, type CalendarEvent } from "./calendar";
 
