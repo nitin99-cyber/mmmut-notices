@@ -83,8 +83,8 @@ export function parseNoticePage(html: string): NoticeMetadata[] {
   const notices: NoticeMetadata[] = [];
   const seenUrls = new Set<string>();
 
-  // Strategy 1: Find all anchor tags whose href ends with .pdf (case-insensitive)
-  $('a[href]').each((_index, element) => {
+  // Strategy 1: Find all anchor tags specifically inside the main announcements grid or the news marquee
+  $('#ContentPlaceHolder2_GridView1 a[href], marquee a[href]').each((_index, element) => {
     try {
       const el = $(element);
       const href = el.attr('href') ?? '';
