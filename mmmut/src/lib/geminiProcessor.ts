@@ -20,6 +20,12 @@
  */
 
 import { getGeminiClient } from "./gemini";
+import {
+  GoogleGenerativeAI,
+  HarmBlockThreshold,
+  HarmCategory,
+} from "@google/generative-ai";
+import { PDFDocument } from "pdf-lib";
 import { generateCalendarUrl, type CalendarEvent } from "./calendar";
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -242,7 +248,22 @@ export async function processNoticeFromVision(
   } = options;
   const ai = getGeminiClient();
 
-  const base64Pdf = pdfBuffer.toString("base64");
+  // Slice the PDF to the first page only to save tokens if there are multiple pages
+  let finalPdfBuffer = pdfBuffer;
+  if (pageCount > 1) {
+    try {
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      const newPdf = await PDFDocument.create();
+      const [firstPage] = await newPdf.copyPages(pdfDoc, [0]);
+      newPdf.addPage(firstPage);
+      finalPdfBuffer = Buffer.from(await newPdf.save());
+      console.log(`Sliced PDF from ${pageCount} pages to 1 page for Gemini Vision.`);
+    } catch (err) {
+      console.error("Failed to slice PDF with pdf-lib, falling back to full PDF:", err);
+    }
+  }
+
+  const base64Pdf = finalPdfBuffer.toString("base64");
 
   const userPrompt = `This is a scanned Hindi university notice document. Read the entire document using your vision capabilities, then analyze it and respond with the JSON structure as instructed.
 ${isLargeNotice ? "\n⚠️ This is a LARGE NOTICE — only the first page is provided. The full notice has " + pageCount + " pages.\n" : ""}`;

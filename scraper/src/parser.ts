@@ -127,6 +127,13 @@ export function parseNoticePage(html: string): NoticeMetadata[] {
       // Clean up excessive whitespace
       title = title.replace(/\s+/g, ' ').trim();
 
+      // --- Filter logic ---
+      // Skip notices meant for staff/professors or office orders
+      if (/(office\s*order|professor|faculty|staff)/i.test(title)) {
+        console.log(`⏭️  Skipping notice (filtered title): ${title}`);
+        return;
+      }
+
       // --- Date extraction ---
       // Look in the parent row / container for a date
       const parentContainer = el.closest('tr, li, div.notice, div.row');

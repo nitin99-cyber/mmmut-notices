@@ -1,0 +1,30 @@
+{
+  "name": "mmmut",
+  "version": "1.0.0",
+  "description": "The MMMUT Notice Intelligence Platform is a robust system designed to digitize, index, and distribute college notices intelligently. Using state-of-the-art Optical Character Recognition (OCR) backed by AI, it automatically discovers notices from the university website, extracts text, categorizes them, and prepares them for distribution via WhatsApp.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "concurrently -n \"ADMIN,SCRAPER,OCR\" -c \"bgBlue.bold,bgMagenta.bold,bgGreen.bold\" \"npm run dev:admin\" \"npm run dev:scraper\" \"npm run dev:ocr\"",
+    "dev:admin": "cd mmmut && npm run dev",
+    "dev:scraper": "cd scraper && npm run scrape:dry",
+    "dev:ocr": "cd easy_ocr && uvicorn main:app --port 8000 --reload"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitin99-cyber/mmmut-notices.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nitin99-cyber/mmmut-notices/issues"
+  },
+  "homepage": "https://github.com/nitin99-cyber/mmmut-notices#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
