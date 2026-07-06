@@ -238,8 +238,8 @@ export async function processNoticeFromVision(
     pdfUrl?: string;
   } = {}
 ): Promise<ProcessedNotice> {
+  let { imageBase64 } = options;
   const {
-    imageBase64,
     isLargeNotice = false,
     pageCount = 1,
     pdfUrl,
