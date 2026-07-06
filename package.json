@@ -10,7 +10,7 @@
     "dev": "concurrently -n \"ADMIN,SCRAPER,OCR\" -c \"bgBlue.bold,bgMagenta.bold,bgGreen.bold\" \"npm run dev:admin\" \"npm run dev:scraper\" \"npm run dev:ocr\"",
     "dev:admin": "cd mmmut && npm run dev",
     "dev:scraper": "cd scraper && npm run scrape:dry",
-    "dev:ocr": "cd easy_ocr && uvicorn main:app --port 8000 --reload"
+    "dev:ocr": "cd easy_ocr && .\\venv\\Scripts\\python -m uvicorn main:app --port 8000 --reload"
   },
   "repository": {
     "type": "git",

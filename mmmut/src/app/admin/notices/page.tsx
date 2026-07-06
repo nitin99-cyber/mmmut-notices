@@ -114,7 +114,9 @@ export default function AdminNoticesPage() {
 
       updateStep(1, {
         status: "done",
-        detail: `${pOcr.confidence}% confidence · ${pOcr.character_count} chars`,
+        detail: pOcr 
+          ? `${pOcr.confidence}% confidence · ${pOcr.character_count} chars`
+          : "OCR Unavailable (Skipped)",
       });
 
       // Update UI with partial result to show OCR and Decision immediately
@@ -149,8 +151,10 @@ export default function AdminNoticesPage() {
         aiFormData.append("file", file);
       }
       aiFormData.append("useVision", String(pDecision.use_vision));
-      aiFormData.append("ocrText", pOcr.text);
-      if (pOcr.image_base64) {
+      if (pOcr && pOcr.text) {
+        aiFormData.append("ocrText", pOcr.text);
+      }
+      if (pOcr && pOcr.image_base64) {
         aiFormData.append("imageBase64", pOcr.image_base64);
       }
 
@@ -345,64 +349,75 @@ export default function AdminNoticesPage() {
         {/* Results */}
         {result && result.success && result.pipeline && (
           <>
-            {/* OCR Results */}
-            <section style={styles.card}>
-              <h2 style={styles.cardTitle}>📊 OCR Results</h2>
-              <div style={styles.statsGrid}>
-                <div style={styles.stat}>
-                  <span style={styles.statValue}>
-                    {result.pipeline.ocr.confidence}%
-                  </span>
-                  <span style={styles.statLabel}>Confidence</span>
+            {result.pipeline.ocr ? (
+              <section style={styles.card}>
+                <h2 style={styles.cardTitle}>📊 OCR Results</h2>
+                <div style={styles.statsGrid}>
+                  <div style={styles.stat}>
+                    <span style={styles.statValue}>
+                      {result.pipeline.ocr.confidence}%
+                    </span>
+                    <span style={styles.statLabel}>Confidence</span>
+                  </div>
+                  <div style={styles.stat}>
+                    <span style={styles.statValue}>
+                      {result.pipeline.ocr.character_count.toLocaleString()}
+                    </span>
+                    <span style={styles.statLabel}>Characters</span>
+                  </div>
+                  <div style={styles.stat}>
+                    <span style={styles.statValue}>
+                      {result.pipeline.ocr.method}
+                    </span>
+                    <span style={styles.statLabel}>OCR Method</span>
+                  </div>
+                  <div style={styles.stat}>
+                    <span
+                      style={{
+                        ...styles.statValue,
+                        color:
+                          result.pipeline.decision.use_vision
+                            ? "#fbbf24"
+                            : "#4ade80",
+                      }}
+                    >
+                      {result.pipeline.decision.use_vision
+                        ? "🔍 Vision"
+                        : "📝 Text"}
+                    </span>
+                    <span style={styles.statLabel}>AI Path</span>
+                  </div>
                 </div>
-                <div style={styles.stat}>
-                  <span style={styles.statValue}>
-                    {result.pipeline.ocr.character_count.toLocaleString()}
-                  </span>
-                  <span style={styles.statLabel}>Characters</span>
-                </div>
-                <div style={styles.stat}>
-                  <span style={styles.statValue}>
-                    {result.pipeline.ocr.method}
-                  </span>
-                  <span style={styles.statLabel}>OCR Method</span>
-                </div>
-                <div style={styles.stat}>
-                  <span
-                    style={{
-                      ...styles.statValue,
-                      color:
-                        result.pipeline.decision.use_vision
-                          ? "#fbbf24"
-                          : "#4ade80",
-                    }}
-                  >
-                    {result.pipeline.decision.use_vision
-                      ? "🔍 Vision"
-                      : "📝 Text"}
-                  </span>
-                  <span style={styles.statLabel}>AI Path</span>
-                </div>
-              </div>
 
-              <div style={styles.decisionBanner}>
-                <span style={styles.decisionIcon}>
-                  {result.pipeline.decision.use_vision ? "🔍" : "✨"}
-                </span>
-                <p style={styles.decisionText}>
-                  {result.pipeline.decision.reason}
-                </p>
-              </div>
+                <div style={styles.decisionBanner}>
+                  <span style={styles.decisionIcon}>
+                    {result.pipeline.decision.use_vision ? "🔍" : "✨"}
+                  </span>
+                  <p style={styles.decisionText}>
+                    {result.pipeline.decision.reason}
+                  </p>
+                </div>
 
-              <div style={styles.textPreview}>
-                <h3 style={styles.previewTitle}>
-                  OCR Extracted Text (Preview)
-                </h3>
-                <pre style={styles.previewText}>
-                  {result.pipeline.ocr.text_preview}
-                </pre>
-              </div>
-            </section>
+                <div style={styles.textPreview}>
+                  <h3 style={styles.previewTitle}>
+                    OCR Extracted Text (Preview)
+                  </h3>
+                  <p style={styles.previewContent}>
+                    {result.pipeline.ocr.text_preview}...
+                  </p>
+                </div>
+              </section>
+            ) : (
+              <section style={styles.card}>
+                <h2 style={styles.cardTitle}>📊 OCR Results</h2>
+                <div style={styles.decisionBanner}>
+                  <span style={styles.decisionIcon}>🔍</span>
+                  <p style={styles.decisionText}>
+                    {result.pipeline.decision?.reason || "OCR service unavailable → falling back to Gemini Vision"}
+                  </p>
+                </div>
+              </section>
+            )}
 
             {/* Processed Notice */}
             {result.pipeline.notice?.title && (

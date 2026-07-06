@@ -138,6 +138,9 @@ Rules for whatsapp_message — use this EXACT template:
 📝 Summary:
 [Summary text]
 
+📖 Full Notice (Translated):
+[Complete english translation text here]
+
 📅 Important Dates:
 • [date 1]
 • [date 2]
@@ -248,19 +251,21 @@ export async function processNoticeFromVision(
   } = options;
   const ai = getGeminiClient();
 
-  // Slice the PDF to the first page only to save tokens if there are multiple pages
+  // Always parse with pdf-lib to get actual page count and slice to first page if needed
   let finalPdfBuffer = pdfBuffer;
-  if (pageCount > 1) {
-    try {
-      const pdfDoc = await PDFDocument.load(pdfBuffer);
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    const actualPageCount = pdfDoc.getPageCount();
+    
+    if (actualPageCount > 1) {
       const newPdf = await PDFDocument.create();
       const [firstPage] = await newPdf.copyPages(pdfDoc, [0]);
       newPdf.addPage(firstPage);
       finalPdfBuffer = Buffer.from(await newPdf.save());
-      console.log(`Sliced PDF from ${pageCount} pages to 1 page for Gemini Vision.`);
-    } catch (err) {
-      console.error("Failed to slice PDF with pdf-lib, falling back to full PDF:", err);
+      console.log(`Sliced PDF from ${actualPageCount} pages to 1 page for Gemini Vision.`);
     }
+  } catch (err) {
+    console.error("Failed to slice PDF with pdf-lib, falling back to full PDF:", err);
   }
 
   const base64Pdf = finalPdfBuffer.toString("base64");

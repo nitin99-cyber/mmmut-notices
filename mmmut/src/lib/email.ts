@@ -27,6 +27,7 @@ export async function sendAdminNotification(
     });
 
     const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/notices`;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
 
     const mailOptions = {
       from: `"MMMUT Notice Bot" <${emailUser}>`,
@@ -47,9 +48,14 @@ ${whatsappMessage}
 
           <p style="margin-top: 20px;">It is currently saved as a <strong>draft</strong>.</p>
           <p>Please review and publish it to the WhatsApp channel.</p>
-          <a href="${dashboardUrl}" style="display: inline-block; background-color: #1976d2; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
-            Go to Admin Dashboard
-          </a>
+          <div style="margin-top: 20px;">
+            <a href="${whatsappUrl}" style="display: inline-block; background-color: #25D366; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-right: 10px; font-weight: bold;">
+              📱 Send to WhatsApp
+            </a>
+            <a href="${dashboardUrl}" style="display: inline-block; background-color: #1976d2; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+              Go to Admin Dashboard
+            </a>
+          </div>
           <p style="margin-top: 30px; font-size: 12px; color: #757575;">
             Automated message from the MMMUT Notice Intelligence Platform
           </p>

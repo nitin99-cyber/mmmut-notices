@@ -104,16 +104,17 @@ export async function POST(request: Request) {
             .update({ whatsapp_message: finalMsg })
             .eq("id", dbResult.id);
         }
-
-        // Send email notification to Admin (fire and forget)
-        if (dbResult?.id) {
-          sendAdminNotification(notice.title, dbResult.id, notice.whatsapp_message).catch(console.error);
-        }
       }
     } catch (err) {
       dbError =
         "Supabase not configured. " +
         (err instanceof Error ? err.message : String(err));
+    }
+
+    // Send email notification to Admin unconditionally (even if DB save failed)
+    if (notice && notice.title) {
+      const dummyId = dbResult?.id || "not-saved-in-db";
+      sendAdminNotification(notice.title, String(dummyId), notice.whatsapp_message).catch(console.error);
     }
 
     return NextResponse.json({
