@@ -54,3 +54,16 @@ This document tracks significant technical and architectural decisions made for 
 **Why:** Supabase JavaScript Client v2 relies on native WebSockets for Realtime features. Native WebSockets were introduced officially in Node.js 22. Running the scraper on Node 20 resulted in "Node.js detected but native WebSocket not found" errors, crashing the automation.
 **Alternatives:**
 - Provide a custom WebSocket polyfill in Node 20. *Rejected: adds unnecessary dependencies and maintenance overhead when simply upgrading the action's Node version cleanly solves the issue.*
+
+## 9. Strict Scraper DOM Targeting
+**Decision:** Restrict Cheerio to parse only specific HTML containers (`#ContentPlaceHolder2_GridView1` and `<marquee>`) rather than scraping all `a[href$=".pdf"]` links on the page.
+**Why:** The generic approach scraped static site navigation links (Privacy Policy, Placement Brochure, etc.) that happened to be PDFs, triggering false-positive AI processing jobs. Tightening the DOM selector perfectly filters out these static files.
+**Alternatives:** 
+- Exclude specific keywords (e.g. "Privacy Policy"). *Rejected: hard to maintain a growing blocklist.*
+
+## 10. Fallback Vision Pipeline Architecture
+**Decision:** Reject Groq Vision fallback if EasyOCR is down and Gemini Vision fails, rather than implementing a Node.js PDF-to-Image pipeline in Next.js.
+**Why:** Groq Vision exclusively requires images (base64) and rejects PDFs. We attempted to use `pdfjs-dist` and `canvas` in Next.js to convert the PDF to an image for Groq. However, `canvas` is a native C++ module that fails to compile in Vercel's serverless environment. Rather than introduce complex WebAssembly workarounds (`pdf2pic`/Ghostscript), we accept that a simultaneous failure of both EasyOCR and Gemini Vision is an acceptable edge case to throw an error on.
+**Alternatives:**
+- Compile `canvas` with Vercel build flags. *Rejected: brittle and prone to breaking on Vercel updates.*
+- Use a third-party PDF-to-Image API. *Rejected: violates zero-cost requirement.*
