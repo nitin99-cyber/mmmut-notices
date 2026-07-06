@@ -11,6 +11,8 @@ export async function sendAdminNotification(
 ): Promise<void> {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_APP_PASSWORD;
+  
+  const users = process.env.EMAIL_USERS ;
 
   if (!emailUser || !emailPass) {
     console.warn("⚠️ Email credentials not configured. Skipping email notification.");
@@ -31,7 +33,7 @@ export async function sendAdminNotification(
 
     const mailOptions = {
       from: `"MMMUT Notice Bot" <${emailUser}>`,
-      to: emailUser, // Sending to the admin themselves
+      to: users ? `${emailUser}, ${users}` : emailUser, // Send to admin and any additional users
       subject: `🚨 New Notice Ready for Review: ${noticeTitle}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">

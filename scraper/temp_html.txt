@@ -1,0 +1,1217 @@
+﻿
+
+<!DOCTYPE html>
+
+<html>
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" /><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="copyright" /><meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Title Tag  -->
+    <title>
+	Madan Mohan Malaviya University of Technology, Gorakhpur (U.P.) India
+</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo1.png" />
+    <!-- Web Font -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&amp;display=swap" rel="stylesheet" /><script src="/bundles/modernizr?v=w9fZKPSiHtN4N4FRqV7jn-3kGoQY5hHpkwFv5TfMrus1"></script>
+
+    
+    <!-- StyleSheet -->
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="Content/bootstrap.css" />
+    <!-- Magnific Popup -->
+    <link rel="stylesheet" href="Content/magnific-popup.min.css" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="Content/font-awesome.css" />
+    <!-- Fancybox -->
+    <link rel="stylesheet" href="Content/jquery.fancybox.min.css" />
+    <!-- Themify Icons -->
+    <link rel="stylesheet" href="Content/themify-icons.css" />
+    <!-- Nice Select CSS -->
+    <link rel="stylesheet" href="Content/niceselect.css" />
+    
+    <!-- Animate CSS -->
+    <link rel="stylesheet" href="Content/animate.css" />
+    <!-- Flex Slider CSS -->
+    <link rel="stylesheet" href="Content/flex-slider.min.css" />
+    <!-- Owl Carousel -->
+    <link rel="stylesheet" href="Content/owl-carousel.css" />
+    <!-- Slicknav -->
+    <link rel="stylesheet" href="Content/slicknav.min.css" />
+
+    <!-- Eshop StyleSheet -->
+    <link rel="stylesheet" href="Content/reset.css" /><link href="Content/hover.css" rel="stylesheet" /><link rel="stylesheet" href="Content/responsive.css" /><link rel="stylesheet" href="Content/custom-bootstrap-margin-padding.css" /><link rel="stylesheet" href="Content/style.css" /><link href="Content/simple.min.css" rel="stylesheet" /><link rel="stylesheet" href="Content/whack.css?v=1.0" />
+</head>
+<body>
+    <form method="post" action="./AllRecord" id="form1">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+
+<script src="/bundles/MsAjaxJs?v=c42ygB2U07n37m_Sfa8ZbLGVu4Rr2gsBo7MvUEnJeZ81" type="text/javascript"></script>
+<script src="Scripts/jquery-1.10.2.min.js" type="text/javascript"></script>
+<script src="Scripts/bootstrap.min.js" type="text/javascript"></script>
+<script src="/bundles/WebFormsJs?v=AAyiAYwMfvmwjNSBfIMrBAqfU5exDukMVhrRuZ-PDU01" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="8E1FA457" />
+	<input type="hidden" name="__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="8PWFfZWRN0weDsG/KHWUE+GKKkPsqkQeLC2Zw82HWz8VSxMDB3e0E5sKOyr/tQvoaNvxA53DL1JsjomUOG6gQVImyS9vdKoOwn6DA8U/KD06+23BG9u2gDlD6OvwF82RPpPr6b8a/BSmflPXY5HYPAxYOtUCeo4Sg9gsnH93b+41+qtfMt7u5stkDCcZ4LCh/uasl/kNikwbudhHdyES9aIa7BQnRtz/hOHzDsC8CA6N4A3Uh1Ewgb1hTt1l/dQOWo98BQfiX1un1jr6wfNdPFEIjR62j0D1T/Epw73hGkffhcWfaJdKMJpZWQ5P1WDR" />
+</div>
+        <div class="wsh1 w-container">
+            <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ctl27', 'form1', [], [], [], 90, 'ctl00');
+//]]>
+</script>
+
+
+            <!-- Header -->
+            <header class="header shop">
+                <!-- Topbar -->
+                <div class="topbar ">
+                    <div class="container " style="max-width: 99%;">
+                        <div class="row ">
+                            <div class="col-md-12" style="height: 25px;">
+                                <marquee id="m5" behavior="ALTERNATE" scrollamount="3" scrolldelay="0" scrollspeed="300" onmouseout="this.start();" onmouseover="this.stop();" style="border-width: 0px; border-style: none; width: 100%;">
+
+                                    
+                                            <img id="Repeater1_Image1_0" src="images/33.gif" style="width:22px;" />&nbsp;
+        <a id="Repeater1_HyperLink3_0" href="https://icespm2026-mmmut.com/" target="_blank" style="color:Red;font-size:15px;font-weight:bold;">ICESPM-2026(Management Studies)</a>
+                                            
+                                        
+                                            &nbsp;|&nbsp;
+                                        
+                                            <img id="Repeater1_Image1_1" src="images/33.gif" style="width:22px;" />&nbsp;
+        <a id="Repeater1_HyperLink3_1" href="News_content/11121news_06232026102200.pdf" target="_blank" style="color:Red;font-size:15px;font-weight:bold;">Advertisement for Recruitment of Faculty and Non-Teaching Positions</a>
+                                            
+                                        
+                                            &nbsp;|&nbsp;
+                                        
+                                            <img id="Repeater1_Image1_2" src="images/33.gif" style="width:22px;" />&nbsp;
+        <a id="Repeater1_HyperLink3_2" href="https://mmmutrec.samarth.edu.in/" target="_blank" style="color:Red;font-size:15px;font-weight:bold;">Teaching Recruitment Portal Link</a>
+                                            
+                                        
+                                            &nbsp;|&nbsp;
+                                        
+                                            <img id="Repeater1_Image1_3" src="images/33.gif" style="width:22px;" />&nbsp;
+        <a id="Repeater1_HyperLink3_3" href="https://mmmutnt.samarth.edu.in/" target="_blank" style="color:Red;font-size:15px;font-weight:bold;">Non-academic Recruitment Portal Link</a>
+                                            
+                                        
+                                            &nbsp;|&nbsp;
+                                        
+                                            <img id="Repeater1_Image1_4" src="images/33.gif" style="width:22px;" />&nbsp;
+        <a id="Repeater1_HyperLink3_4" href="News_content/45521news_06262026111221.pdf" target="_blank" style="color:Red;font-size:15px;font-weight:bold;">2nd Round PG seat allotment</a>
+                                            
+                                        
+                                    
+
+                                </marquee>
+
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- End Topbar -->
+                <div class="middle-inner">
+                    <div class="container" style="max-width: 99%;">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-2 col-12 p-0">
+                                <!-- Logo -->
+                                <div class="logo mt-0">
+                                    <a href="index.aspx">
+                                        <img src="images/logo3.jpg" alt="logo"></a>
+                                </div>
+
+                                <!--/ End Search Form -->
+                                <div class="mobile-nav"></div>
+                            </div>
+                            <div class="col-lg-6 col-md-8 col-12 text-center ">
+
+                                <img src="images/logo-banner.jpg" class=" img-fluid whead1" />
+                            </div>
+                            
+                            <div class="col-lg-3 col-md-2 col-12 ">
+
+                                
+                                <img src="images/Azadi-Ka-Amrit-Mahotsav-Logo.png" class="float-left    " style="width: 35%" />
+                                <img src="images/G20_India_Logo.png" class="float-left   " style="width: 35%;" />
+                                <div class="right-bar ml-lg-3 ml-0">
+
+                                    <div class="sinlge-bar shopping">
+                                        <a href="#" class="single-icon"><i class=" fa fa-envelope-open-o"></i>
+                                            <span class="total-count">2</span>
+                                        </a>
+                                        <!-- Menu Item -->
+                                        <div class="shopping-item">
+
+                                            <ul class="shopping-list ">
+
+                                                <li><a href="ViewAdvertismentforvaccantposition.aspx"><i class="fa fa-bullhorn mr-2"></i>Jobs@MMMUT</a></li>
+                                                <li><a href="AllRecord.aspx"><i class="fa fa-newspaper-o mr-2"></i>News</a></li>
+                                                
+                                                <li><a href="AllHappenings.aspx"><i class="fa fa-heart  mr-2"></i>Events</a></li>
+                                                <li><a href="Sports_Games.aspx"><i class="fa fa-flag-checkered  mr-2"></i>Sports</a></li>
+
+                                                <li><a href="video_youtube.aspx"><i class="fa fa-video-camera  mr-2"></i>Videos Gallery</a></li>
+                                                <li><a href="Photogallary1.aspx"><i class="fa fa-camera  mr-2"></i>Photo Gallery</a></li>
+                                                <li><a href="Viewdownloads.aspx"><i class="fa fa-download  mr-2"></i>Downloads</a></li>
+                                                <li><a href="Corporate_Links.aspx"><i class="fa fa-link  mr-2"></i>Important Links</a></li>
+                                                <hr />
+                                                <li><a href="Staff_Phone_Directory.aspx"><i class="fa fa-address-book  mr-2"></i>Staff Phone Directory</a></li>
+
+
+                                            </ul>
+
+                                        </div>
+                                        <!--/ End Menu Item -->
+                                    </div>
+
+                                    <div class="sinlge-bar shopping">
+                                        <a href="#" class="single-icon"><i class=" fa fa-black-tie"></i>
+                                            <!--<span class="total-count">2</span>-->
+                                        </a>
+                                        <!-- Menu Item -->
+                                        <div class="shopping-item">
+
+                                            <ul class="shopping-list">
+                                                <li><a href="http://www.alumni.mmmut.ac.in/" target="_blank"><i class="fa fa-user mr-2"></i>Alumni</a></li>
+                                                <li><a href="#"><i class="fa fa-group  mr-2"></i>Students</a></li>
+                                                <li><a href="#"><i class="fa fa-user-circle-o mr-2"></i>Faculty</a></li>
+
+                                            </ul>
+
+                                        </div>
+                                        <!--/ End Menu Item -->
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Header Inner -->
+                <div class="header-inner">
+                    
+                    <div class="pr-15 pl-15">
+                        <div class="row ">
+
+
+                            <div class="col-lg-12 col-md-12 col-12">
+                                <div class="cat-nav-head">
+                                    <div class="menu-area">
+                                        <!-- Main Menu -->
+                                        <nav class="navbar navbar-expand-lg">
+                                            <div class="navbar-collapse">
+                                                <div class="nav-inner">
+                                                    <ul class="nav nav-menu main-menu1  menu navbar-nav">
+                                                        <li class="active"><a href="index.aspx"><i class="fa fa-home fa-2x m-1 wf18"></i></a></li>
+
+                                                        <li><a href="#">The University <i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+
+                                                                <li><a href="About.aspx">About Us</a></li>
+
+                                                                <li><a href="Chancellor.aspx">Chancellor</a></li>
+                                                                <li><a href="Vice-Chancellor.aspx" target="_blank">Vice-Chancellor </a></li>
+
+                                                                <li><a href="Administration.aspx">Administration</a></li>
+
+                                                                <li class="hasdrop"><a href="#">Governance<i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+
+
+                                                                        <li><a href="g_overview.aspx">Overview</a></li>
+
+
+                                                                        <li class="hasdrop"><a href="#">The Court<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=1">Composition</a></li>
+                                                                                <li><a href="#">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=1">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Board of Management<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=2">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=BOM">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=2">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Academic Council<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=3">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=ACL">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=3">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Finance Committee<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=4">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=FC">Meeting Minutes</a></li>
+                                                                                
+                                                                                <li><a href="Constitution.aspx?id=4">Constitution</a></li>
+                                                                                <li><a href="Finance.aspx">Finance</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Examination Committee<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=5">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=EC">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=5">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+
+                                                                        <li class="hasdrop"><a href="#">Administrative Committee<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=6">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=ADC">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=6">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Purchase Committee<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=7">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=PC">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=7">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Academic Affairs Committee<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=8">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=AC">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=8">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Building Works Committee<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence?id=9">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=BWC">Meeting Minutes</a></li>
+                                                                                <li><a href="Constitution.aspx?id=9">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li class="hasdrop"><a href="#">Board of Studies<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+
+                                                                                <li><a href="Constitution.aspx?id=10">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+
+
+                                                                        <li class="hasdrop"><a href="#">Internal Quality Assurance Cell<i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="Governence.aspx?id=35">Composition</a></li>
+                                                                                <li><a href="ViewUnivMeetingMinutes.aspx?m=IQAC">Meeting Minutes</a></li>
+                                                                                <li><a href="Governence.aspx?id=16">Constitution</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+
+                                                                <li><a href="StrategicPlan.aspx">Strategic Plan</a></li>
+                                                                
+                                                                <li><a href="Acts_Status.aspx">Acts &amp; Statute</a></li>
+                                                                <li><a href="LocationCampus.aspx">Location & Campus</a></li>
+                                                                <li><a href="pdf/MMMCourtCases.pdf" target="_blank">Court Cases</a></li>
+                                                                <li><a href="images/largelogo.jpg">University Logo</a></li>
+
+                                                                <li><a href="AuditCertificate.aspx">University Audit Certificate & Report</a></li>
+                                                                <li><a href="Photogallary1.aspx">Photo Gallery</a></li>
+                                                                <li><a href="video_youtube.aspx">Video Gallery</a></li>
+                                                            </ul>
+                                                        </li>
+
+
+
+                                                        <li><a href="#">Academics <i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="Programmes.aspx">Programmes</a></li>
+                                                                <li class="hasdrop"><a href="#">Admission <i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+                                                                        <li><a href="A_UG.aspx">UG</a></li>
+                                                                        <li><a href="A_PG.aspx">PG</a></li>
+                                                                        <li><a href="A_PhD.aspx">Ph.D.</a></li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li class="hasdrop"><a href="#">Departments<i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+                                                                        <li><a href="Civil_About.aspx">Civil Engineering</a></li>
+                                                                        <li><a href="MechanicalHome.aspx">Mechanical Engineering</a></li>
+                                                                        <li><a href="Electrical_About.aspx">Electrical Engineering</a></li>
+                                                                        <li><a href="EC_Home.aspx">Electronics &amp; Communication Engineering</a></li>
+                                                                        <li><a href="CS_About.aspx">Computer Science &amp; Engineering</a></li>
+                                                                        <li><a href="Applied_Sciences_About.aspx">Physics and Materiel Science </a></li>
+                                                                        <li><a href="CMSHome.aspx">Department of Humanities & Social Science</a></li>
+
+                                                                        <li><a href="ChemicalHome.aspx">Chemical Engineering</a></li>
+                                                                        <li><a href="ITCA_About.aspx">Information Technology &amp; Computer Application</a></li>
+                                                                        <li><a href="CES_About.aspx">Chemistry and Environmental Science</a></li>
+                                                                        <li><a href="MSC_About.aspx">Mathematics and Scientific Computing</a></li>
+                                                                        
+
+                                                                        <li><a href="MSHome.aspx">Management Studies</a></li>
+                                                                        <li><a href="PharmAbout.aspx">Pharmaceutical Science and Technology</a></li>
+                                                                    </ul>
+
+                                                                </li>
+                                                                <li class="hasdrop"><a href="Ordinances.aspx">Ordinances
+                                                                </a>
+
+                                                                </li>
+                                                                <li><a href="ViewSyllabus.aspx">Credit Structure and Syllabus </a></li>
+                                                                <li><a href="ViewTimetable.aspx">Timetable </a></li>
+                                                                <li><a href="View_Fee_Structure.aspx">Fee Structure</a></li>
+                                                                <li><a href="ViewAcademicCalendar.aspx">Academic Calendar</a></li>
+                                                                <li><a href="RankingAndAccreditation.aspx">Ranking & Accreditation</a></li>
+                                                                <li><a href="Ebook.aspx">E-Learning</a></li>
+                                                                <li><a href="MoU.aspx">MoU</a></li>
+                                                                <li><a href="PhDScheme.aspx">Visvesvaraya PhD scheme</a></li>
+                                                                <li><a href="HonoraryDegreeRecipient.aspx">Honorary Degree Recipient</a></li>
+                                                            </ul>
+
+                                                        </li>
+                                                        <li><a href="#">Research &amp; Development <i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="ViewSponsoredProjects.aspx">Research Projects</a></li>
+                                                                <li><a href="ViewTestingConsultancyProjects.aspx">Consultancy</a></li>
+
+
+                                                                <li><a href="ViewPublication.aspx">Publications</a></li>
+                                                                
+                                                                <li><a href="PhDAwarded.aspx">Ph.D. Awarded </a></li>
+                                                                <li class="hasdrop"><a href="#">IQAC<i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+
+                                                                        <li><a href="IQAC.aspx">IQAC</a></li>
+                                                                        <li><a href="BestPractice-1.aspx">Best Practice - 1</a></li>
+                                                                        <li><a href="BestPractice-2.aspx">Best Practice - 2</a></li>
+                                                                        <li><a href="Distinctiveness.aspx">Distinctiveness </a></li>
+
+                                                                    </ul>
+                                                                </li>
+
+                                                                <li class="hasdrop"><a href="#">Entrepreneurship<i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+
+                                                                        <li><a href="http://www.mmmut.ac.in/DIIC_Web" target="_blank">Design Innovation and Incubation Centre</a></li>
+
+                                                                    </ul>
+                                                                </li>
+                                                                <li><a href="PoliciesGuidelines.aspx">Policies and Guidelines </a></li>
+                                                            </ul>
+                                                        </li>
+
+                                                        <!--campus menu start-->
+                                                        <li>
+                                                            <a href="#">Campus Facilities<i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="cf_overview.aspx">Overview</a></li>
+                                                                <li><a href="Library.aspx">Library</a></li>
+                                                                <li><a href="Workshop.aspx">Workshop</a></li>
+                                                                <li><a href="ITRC.aspx">IT Resource Center</a></li>
+                                                                <li><a href="Hostel.aspx">Hostel</a></li>
+                                                                <li class="hasdrop"><a href="#">Council of Students Activities
+                                                                    <i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+                                                                        <li><a href="CSA-Overview.aspx">Overview</a></li>
+                                                                        <li><a href="SportsSubCouncil.aspx">Sports Sub Council</a></li>
+                                                                        <li><a href="CulturalSub.aspx">Cultural Sub Council</a></li>
+                                                                        <li><a href="TechnicalSub.aspx">Technical Sub Council</a></li>
+                                                                        <li><a href="NCC-NSS.aspx">NCC & NSS</a></li>
+                                                                        <li class="hasdrop"><a href="#">Events
+                                                                    <i class="ti-angle-down"></i></a>
+                                                                            <ul class="dropdown">
+                                                                                <li><a href="#" target="_blank">TechSrijan</a></li>
+                                                                                <li><a href="http://abhyudayammm.me/" target="_blank">Abhyudaya</a></li>
+                                                                                <li><a href="https://www.rcmmmut.in/" target="_blank">Robomania</a></li>
+
+                                                                                <li><a href="https://www.facebook.com/uicmmmut" target="_blank">Innovision</a></li>
+                                                                            </ul>
+                                                                        </li>
+                                                                        <li><a href="eventsorganized.aspx">Events Organized</a></li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li class="hasdrop"><a href="#">Other Facilities
+                                                                    <i class="ti-angle-down"></i></a>
+                                                                    <ul class="dropdown">
+                                                                        <li><a href="Canteen.aspx">Cafeteria</a></li>
+                                                                        <li><a href="Guest_House.aspx">Guest House</a></li>
+                                                                        <li><a href="Post_Office.aspx">Post-Office</a></li>
+                                                                        <li><a href="SBI.aspx">Bank</a></li>
+                                                                        <li><a href="Hospital.aspx">Hospital</a></li>
+                                                                        <li><a href="Transportation.aspx">Transportation</a></li>
+                                                                        <li><a href="recordingstudio.aspx">Recording Studio</a></li>
+
+                                                                    </ul>
+                                                                </li>
+
+
+                                                            </ul>
+                                                        </li>
+                                                        <!--campus menu end-->
+
+                                                        <li><a href="#">Training &amp; Placement <i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="Training_Placement.aspx">Overview </a></li>
+                                                                
+                                                                
+                                                                <li><a href="Pdf/PlacementBrochure2026-27.pdf" target="_blank">Placement Brochure</a></li>
+
+                                                                <li><a href="Pdf/T&P_Policy_2023-24.pdf" target="_blank">Placement Policy</a></li>
+                                                                <li><a href="Corporate_Linkages.aspx">Recruiters</a></li>
+
+                                                                <li><a href="GATEResult.aspx">GATE Result </a></li>
+                                                                <li><a href="TrainingActivities.aspx">Training Activities</a></li>
+                                                                
+                                                                <li><a href="pdf/Contact_list_TnP_2026-27.pdf" target="_blank">Contact Us</a></li>
+                                                                
+                                                                <li><a href="pdf/ResumeTemplate_TnP_MMMUT.docx" target="_blank">Resume Template </a></li>
+                                                               <li><a href="pdf/No_Objection_Certificate_MMMUT.pdf" target="_blank">NOC (No Objection Certificate)</a></li>
+                                                                
+                                                                <li><a href="https://tnpmmmut.tech/" target="_blank">T&P Website</a></li>
+
+
+                                                                <li><a href="https://mmmut.samarth.ac.in/index.php/training/company-profile-requests/register" target="_blank">Training and Placement</a></li>
+
+                                                                <li><a href="pdf/Employer-Survey.pdf" target="_blank">Employer Survey</a></li>
+                                                            </ul>
+                                                        </li>
+
+                                                        <li><a href="#">Examination &amp; Results <i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="pdf/Examination Manual_MMMUT.pdf" target="_blank">Examination Manual</a></li>
+
+
+                                                                <li><a href="ExaminationSchedule.aspx">Examination Notices</a></li>
+                                                                <li><a href="ModelQPapers.aspx">Important Links & Formats</a></li>
+                                                                <li class="nav-item"><a class="nav-link text-truncate" href="Digilocker.aspx" target="_blank">DigiLocker NAD/ABC</a></li>
+
+                                                                <li><a href="pdf/Final_degree_migration_Rules.pdf" target="_blank">Degree/Migration</a></li>
+                                                            </ul>
+                                                        </li>
+                                                        <li><a href="#">Careers<i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="ViewAdvertismentforvaccantposition.aspx">Faculty Positions</a></li>
+                                                                <li><a href="ViewAdvertismentforvaccantpositionNTP.aspx">Non-Teaching Positions</a></li>
+                                                                <li><a href="ViewAdvertismentforvaccantpositionPP.aspx">Project Positions</a></li>
+
+                                                            </ul>
+                                                        </li>
+                                                        <li><a href="#">Alumni<i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+
+                                                                 <li><a href="pdf/Bylaws-BOM-2025.pdf" target="_blank">Malaviya Alumni Association <br />(Revised)</a></li>
+                                                               
+                                                                <li><a href="http://www.alumni.mmmut.ac.in/Alumni_Chapters.aspx" target="_blank">Alumni Chapters</a></li>
+                                                                <li><a href="http://www.alumni.mmmut.ac.in/Forthcoming_Alumni_Meet.aspx" target="_blank">Alumni Meet</a></li>
+                                                                
+
+                                                                <li><a href="https://www.malviyans.com/" target="_blank">Alumni Portal</a></li>
+
+                                                                <li><a href="https://mmmut.samarth.edu.in/alumni/index.php/site/login" target="_blank">Alumni Registration</a></li>
+                                                                <li><a href="https://mmmut.samarth.edu.in/endowment/index.php/settings/app" target="_blank">Endowment</a></li>
+                                                            </ul>
+                                                        </li>
+                                                        <li><a href="#">NAAC<i class="ti-angle-down"></i></a>
+                                                            <ul class="dropdown">
+                                                                <li><a href="pdf/SSR_FINAL_19.08.2021.pdf" target=" _blank">NAAC SSR</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0001">Criterion-I</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0017">Criterion-II</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0042">Criterion-III</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0080">Criterion-IV</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0100">Criterion-V</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0117">Criterion-VI</a></li>
+                                                                <li><a href="NAACCriteria.aspx?id=M0140">Criterion-VII</a></li>
+
+
+
+                                                            </ul>
+                                                        </li>
+                                                        <li><a href="ITEP.aspx">ITEP</a></li>
+                                                        <li><a href="Contact_Us.aspx"><i class=" fa fa-phone-square fa-2x m-1 wf18"></i></a></li>
+
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </nav>
+                                        <!--/ End Main Menu -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </div>
+                <!--/ End Header Inner -->
+            </header>
+            <!--/ End Header -->
+
+            
+
+
+
+            <!-- Start Blog Single -->
+            <section class="blog-single section">
+                <div class="container  wsh">
+                    
+    <div class="w_content pt-20 mt-0">
+        <h2 class="w-bgph ">Announcements</h2>
+        <hr /> 
+        <div>
+	<table cellspacing="2" cellpadding="2" id="ContentPlaceHolder2_GridView1" style="width:100%;">
+		<tr class="pagination-ys">
+			<td><table>
+				<tr>
+					<td><span>1</span></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$2&#39;)">2</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$3&#39;)">3</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$4&#39;)">4</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$5&#39;)">5</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$6&#39;)">6</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$7&#39;)">7</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$8&#39;)">8</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$9&#39;)">9</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$10&#39;)">10</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$11&#39;)">...</a></td>
+				</tr>
+			</table></td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_0" src="images/new.gif" />
+                                    <a href='News_content/21324notice_07062026.pdf' target="_blank">Office order Related to Malviya Chhatra Kalya Nidhi-2020 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_0" href="News_content/21324notice_07062026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_1" src="images/new.gif" />
+                                    <a href='News_content/31402notice_07062026.pdf' target="_blank">Hostel allotment List for (3rd & 4th Year) UGS and PGS, Ph.D. Students for the Session 2026-27 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_1" href="News_content/31402notice_07062026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_2" src="images/new.gif" />
+                                    <a href='News_content/34143notice_07062026.pdf' target="_blank">Hostel allotment List for 2nd Year Student for the Session 2026-27 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_2" href="News_content/34143notice_07062026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_3" src="images/new.gif" />
+                                    <a href='News_content/43120notice_07012026.pdf' target="_blank">(Revised) Important notice regarding odd semester registration for B.Tech, BBA and B. Pharm 2nd, 3rd and 4th Year Session 2026-2027 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_3" href="News_content/43120notice_07012026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_4" src="images/new.gif" />
+                                    <a href='News_content/40425notice_06302026.pdf' target="_blank">PhD Registration Date Extended for All Years &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_4" href="News_content/40425notice_06302026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_5" src="images/new.gif" />
+                                    <a href='News_content/15214notice_06292026.pdf' target="_blank">Important notice regarding odd semester registration for UG students Session 2026-27 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_5" href="News_content/15214notice_06292026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_6" src="images/new.gif" />
+                                    <a href='News_content/23314notice_06292026.pdf' target="_blank">Notice regarding hostel fee to be deposited the link by second year students &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_6" href="News_content/23314notice_06292026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_7" src="images/new.gif" />
+                                    <a href='News_content/10235notice_06292026.pdf' target="_blank">Important Notice regarding  odd semester registration for MBA /MCA/M.tech/M.Sc  Session 2026-27 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_7" href="News_content/10235notice_06292026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_8" src="images/new.gif" />
+                                    <a href='News_content/13520notice_06292026.pdf' target="_blank">Important notice regarding odd semester registration for B.Tech, BBA and B. Pharm 2nd, 3rd and 4th Year Session 2026-27 &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_8" href="News_content/13520notice_06292026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_9" src="images/new.gif" />
+                                    <a href='News_content/44355notice_06252026.pdf' target="_blank">Office Order for Prof S K Soni &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_9" href="News_content/44355notice_06252026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_10" src="images/new.gif" />
+                                    <a href='News_content/55201notice_06252026.pdf' target="_blank">Office Order(Dean Of International Affairs) &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_10" href="News_content/55201notice_06252026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_11" src="images/new.gif" />
+                                    <a href='News_content/02213notice_06252026.pdf' target="_blank">Office Order(Dean of International Affairs) &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_11" href="News_content/02213notice_06252026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_12" src="images/new.gif" />
+                                    <a href='News_content/11514notice_06252026.pdf' target="_blank">Office order for Dean UGS &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_12" href="News_content/11514notice_06252026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_13" src="images/new.gif" />
+                                    <a href='News_content/53412notice_06252026.pdf' target="_blank">Chairman, Council of Student Activities (Office Order) &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_13" href="News_content/53412notice_06252026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_14" src="images/new.gif" />
+                                    <a href='News_content/11040notice_06242026.pdf' target="_blank">Office order for Prof. Prabhakar Tiwari, Electrical  Engg. Department &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_14" href="News_content/11040notice_06242026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_15" src="images/new.gif" />
+                                    <a href='News_content/02025notice_06242026.pdf' target="_blank">Office order for Dr. Shikha Singh, Electrical  Engg. Department &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_15" href="News_content/02025notice_06242026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_16" src="images/new.gif" />
+                                    <a href='News_content/55225notice_06242026.pdf' target="_blank">Office order for Dr. Vinay Kumar Singh, Civil  Engg. Department &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_16" href="News_content/55225notice_06242026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_17" src="images/new.gif" />
+                                    <a href='News_content/41324notice_06242026.pdf' target="_blank">Office order for Dr. Awadhesh Kumar, Electrical  Engg. Department &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_17" href="News_content/41324notice_06242026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_18" src="images/new.gif" />
+                                    <a href='News_content/04020notice_06242026.pdf' target="_blank">Office order forDr. Jyoti, Chemical Engg. Department &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_18" href="News_content/04020notice_06242026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr>
+			<td>
+
+                        <table cellpadding="0" cellspacing="0"
+                            style=" text-align: left; background-color: #FBFBFB; border: 1px solid #EBEBEB; padding: 5px; margin-bottom: 5px; width: 100%">
+                            <tr>
+                                <td colspan="3" style="padding-left: 10px; padding-right: 5px">
+                                    <img id="ContentPlaceHolder2_GridView1_Image1_19" src="images/new.gif" />
+                                    <a href='News_content/15050notice_06242026.pdf' target="_blank">Office order for Dr. Rohit Kumar, Civil Department &nbsp;   </a></td>
+                            </tr>
+
+                            <tr>
+                                <td width="35%" style="padding-left: 10px; padding-right: 5px">
+                                    </td>
+                                <td width="35%"></td>
+                                <td align="right" width="30%" style="padding-left: 10px; padding-right: 10px">Detail:<a id="ContentPlaceHolder2_GridView1_HyperLink2_19" href="News_content/15050notice_06242026.pdf" target="_blank" style="color:#CC3300;">Download <i class="fa fa-download"></i></a></td>
+                            </tr>
+                        </table>
+
+                    </td>
+		</tr><tr class="pagination-ys">
+			<td><table>
+				<tr>
+					<td><span>1</span></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$2&#39;)">2</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$3&#39;)">3</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$4&#39;)">4</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$5&#39;)">5</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$6&#39;)">6</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$7&#39;)">7</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$8&#39;)">8</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$9&#39;)">9</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$10&#39;)">10</a></td><td><a href="javascript:__doPostBack(&#39;ctl00$ContentPlaceHolder2$GridView1&#39;,&#39;Page$11&#39;)">...</a></td>
+				</tr>
+			</table></td>
+		</tr>
+	</table>
+</div>
+        
+     
+        <br />
+       
+    </div>
+
+
+                </div>
+            </section>
+            <!--/ End Blog Single -->
+
+            <!-- Start Footer Area -->
+            <footer class="footer">
+                <!-- Footer Top -->
+                <div class="footer-top section">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-4 col-md-6 mb-10 col-12">
+                                <!-- Single Widget -->
+                                <div class="single-footer about">
+                                    <h4>CONTACT US</h4>
+
+                                    <p class="text">
+
+                                        <b>MADAN MOHAN MALAVIYA UNIVERSITY OF TECHNOLOGY, Gorakhpur</b><br />
+                                        <b>Phone:</b> +91-551-2273958, +91-8765783730<br />
+                                        <b>Fax:</b> 0551-2270011<br />
+                                        <b>P.A. to Vice-Chancellor:</b> Sri Pradeep Kant Singh<br />
+                                        <b>Phone:</b>+91-9235500502(during office hours)<br />
+                                        <b>Email:</b> patovc@mmmut.ac.in<br />
+                                        <b>Phone(Information-Cum-Reception Center):</b> 8765783796<br />
+                                        <b>Admission Enquiry:</b> 9235500507, 8765783798<br />
+                                        (On all working days between 9:30 am to 5:00 pm)
+                                    </p>
+                                    <div class="single-footer social">
+                                        <ul>
+                                            <h4 class=" pull-left">Get In Touch : </h4>
+                                            <li class="hasdrop"><a href="https://www.facebook.com/mmmut.ac.in" target="_blank"><i class="ti-facebook"></i></a></li>
+                                            <li class="hasdrop"><a href="https://twitter.com/MmmutOfficial" target="_blank"><i class="ti-twitter"></i></a></li>
+                                            <li class="hasdrop"><a href="https://www.linkedin.com/school/madan-mohan-malaviya-university-of-technology/" target="_blank"><i class="ti-linkedin"></i></a></li>
+                                            <li class="hasdrop"><a href="https://www.youtube.com/user/mmmut1" target="_blank"><i class=" ti-youtube"></i></a></li>
+                                        </ul>
+                                    </div>
+
+                                </div>
+                                <!-- End Single Widget -->
+                            </div>
+                            <div class="col-lg-2 col-md-6 mb-10 col-12">
+                                <!-- Single Widget -->
+                                <div class="single-footer links">
+                                    <h4>Media</h4>
+                                    <ul>
+
+                                        <li class="hasdrop"><a href="Photogallary1.aspx">Photo Gallery</a></li>
+                                        <li class="hasdrop"><a href="video_youtube.aspx">Video Gallery</a></li>
+                                        <li class="hasdrop"><a href="ViewMediaCoverage.aspx">Media Coverage</a></li>
+                                        <li class="hasdrop">
+                                            <a href="images/FINALKULGEET.mp3">Kulgeet-abridged </a>
+                                            <audio controls>
+
+                                                <source src="images/FINALKULGEET.mp3" type="audio/mpeg">
+                                            </audio>
+                                        </li>
+                                        <li class="hasdrop">
+                                            <a href="images/MMMUT-KULGEET-DHUN-2min.mp3">Kulgeet-abridged-Dhun </a>
+                                            <audio controls>
+
+                                                <source src="images/MMMUT-KULGEET-DHUN-2min.mp3" type="audio/mpeg">
+                                            </audio>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- End Single Widget -->
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-10 col-12">
+                                <!-- Single Widget -->
+                                <div class="single-footer links">
+                                    <h4>Important Links</h4>
+                                    <ul>
+                                        <li><a href="Tenders.aspx">Tender</a></li>
+                                        <li><a href="NIRFData.aspx">NIRF</a></li>
+                                        <li><a href="Corporate_Links.aspx">Useful Links</a></li>
+                                        <li><a href="Right_to_Information.aspx">Right to Information</a></li>
+                                        <li><a href="http://upgovernor.gov.in/" target="_blank">Raj Bhawan, U.P.</a></li>
+                                        <li><a href="CasteDiscrimination.aspx">Caste Discrimination Complaint</a></li>
+
+                                        <li><a href="pdf/MandatoryDisclosure1.pdf" target="_blank">AICTE Mandatory Disclosure</a></li>
+                                    </ul>
+                                </div>
+                                <!-- End Single Widget -->
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-10 col-12">
+                                <!-- Single Widget -->
+                                <div class="single-footer links">
+                                    <h4>Quick Links</h4>
+                                    <ul>
+                                        <li class="hasdrop"><a href="ImportantCells.aspx">Important Cells</a></li>
+                                        <li class="hasdrop"><a href="https://portal.office.com/" target="_blank">Webmail</a></li>
+                                        <li class="hasdrop"><a href="http://www.mmmut.ac.in/PDF/Regulations_for_Endowment-24_6.pdf" target="_blank">Invitation for Donations</a></li>
+                                        <li class="hasdrop"><a href=" http://www.mmmut.ac.in/pdf/SpokenTutorial.pdf" target="_blank">Spoken Tutorial IIT Bombay</a></li>
+                                        <li class="hasdrop"><a href="#">NPTEL Video Courses</a></li>
+                                        <li class="hasdrop"><a href="https://samadhaan.ugc.ac.in/" target="_blank">UGC e-Samadhan Portal</a></li>
+                                    </ul>
+                                </div>
+                                <!-- End Single Widget -->
+                            </div>
+                            <!--<div class="col-lg-3 col-md-6 mb-10 col-12">
+                       
+                        <div class="single-footer social">
+                            <h4>Get In Tuch</h4>                          
+                            
+                            <ul>
+                                <li class="hasdrop"><a href="#"><i class="ti-facebook"></i></a></li>
+                                <li class="hasdrop"><a href="#"><i class="ti-twitter"></i></a></li>
+                                <li class="hasdrop"><a href="#"><i class="ti-flickr"></i></a></li>
+                                <li class="hasdrop"><a href="#"><i class="ti-instagram"></i></a></li>
+                            </ul>
+                        </div>
+                        
+                    </div>-->
+                        </div>
+                    </div>
+                </div>
+                <!-- End Footer Top -->
+                <div class="copyright">
+                    <div class="container">
+                        <div class="inner">
+                            <div class="row">
+                                <div class="col-lg-12 col-12">
+                                    <div class="left ">
+
+                                        <p style="margin-top: 0px; margin-bottom: 0px; font-size: 12px; text-align: center">
+                                            This is the official Website of Madan Mohan Malaviya University of Technology. |
+                    Best viewed in 1366*768 pixel resolution.  
+                                        </p>
+                                        <p style="margin-top: 0px; margin-bottom: 0px; font-size: 12px; text-align: center">
+                                            &nbsp;<a>Copyright Statement </a>| <a>Hyperlinking Policy</a> | <a>Terms &amp; Conditions
+                                            </a>|<a href="Pdf/MMMUTPrivacyPolicy.pdf" target="_blank"> Privacy Policy </a> |<a> Disclaimer </a>| Powerd By <a href="http://sandeshbharat.com" target="_blank" title="Sandesh Tech Soft (P)Ltd.">Sandesh</a> 
+
+                                             
+
+
+
+                                             <!-- hitwebcounter Code START -->
+<a href="https://www.hitwebcounter.com/" target="_blank" rel="noopener" title="Styles For Counter">
+<img src="https://www.hitwebcounter.com/counter/counter.php?page=21504650&amp;style=0008&amp;nbdigits=9&amp;type=page" alt="Styles For Counter" decoding="async" style="border:0;max-width:100%;height:auto;" />
+</a>
+<!-- hitwebcounter Code END -->
+                                        </p>
+
+
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-12">
+                                    <!--<div class="right">
+                                <img src="images/payments.png" alt="#">
+                            </div>-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+            <!-- /End Footer Area -->
+        </div>
+        <!-- Jquery -->
+        <script src="Scripts/jquery.min.js"></script>
+        <script src="Scripts/jquery-migrate-3.0.0.js"></script>
+        <script src="Scripts/jquery-ui.min.js"></script>
+        <!-- Popper JS -->
+        <script src="Scripts/popper.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="Scripts/bootstrap.min.js"></script>
+        <!-- Color JS -->
+        <script src="Scripts/colors.js"></script>
+        <!-- Slicknav JS -->
+        <script src="Scripts/slicknav.min.js"></script>
+        <!-- Owl Carousel JS -->
+        <script src="Scripts/owl-carousel.js"></script>
+        <!-- Magnific Popup JS -->
+        <script src="Scripts/magnific-popup.js"></script>
+        <!-- Waypoints JS -->
+        <script src="Scripts/waypoints.min.js"></script>
+        <!-- Countdown JS -->
+        <script src="Scripts/finalcountdown.min.js"></script>
+        <!-- Nice Select JS -->
+        <script src="Scripts/nicesellect.js"></script>
+        <!-- Flex Slider JS -->
+        <script src="Scripts/flex-slider.js"></script>
+        <!-- ScrollUp JS -->
+        <script src="Scripts/scrollup.js"></script>
+        <!-- Onepage Nav JS -->
+        <script src="Scripts/onepage-nav.min.js"></script>
+        <!-- Easing JS -->
+        <script src="Scripts/easing.js"></script>
+        <!-- Active JS -->
+        <script src="Scripts/active.js"></script>
+
+        <!-- ------------------------------------------------------------------w -->
+        <script src="Scripts/jquery.marquee.js"></script>
+
+        
+
+
+        <!----------------POPUP-------------------------------->
+        <script>
+            $('#overlay').modal('show');
+
+        //setTimeout(function () {
+        //    $('#overlay').modal('hide');
+        //}, 5000);
+        </script>
+
+        <script type="text/javascript" src="sts/sts-full.js"></script>
+        <link rel="stylesheet" type="text/css" href="sts/sts.css" />
+        <script src="Jq/newssc.js" type="text/javascript"></script>
+    </form>
+</body>
+</html>
+
