@@ -3,7 +3,7 @@ name: Scrape MMMUT Notices
 on:
   schedule:
     # Run every 4 hours
-    - cron: '*/240 * * * *'
+    - cron: '*/600 * * * *'
   workflow_dispatch:
     # Allow manual triggering from the Actions tab
 
