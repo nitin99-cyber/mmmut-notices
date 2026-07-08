@@ -127,9 +127,11 @@ The JSON must have this exact structure:
   "summary": "2-4 sentence English summary of the key information. Include what action students need to take, if any.${isLargeNotice ? " Mention that the full student list is available in the original PDF." : ""}",
   "english_translation": "Complete, accurate English translation of the provided notice text. Preserve formatting with newlines. Include all dates, names, and details.",
   "important_dates": ["Array of important dates, format: 'YYYY-MM-DD: Description'. Assume current year 2026 if not specified. Empty array if none."],
-  "calendar_events": [{"title": "Event title", "date": "YYYY-MM-DD", "description": "Brief description for calendar entry"}],
+  "calendar_events": [{"title": "Event title", "date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD (optional)", "description": "Brief description for calendar entry"}],
   "whatsapp_message": "A fully formatted ready-to-send WhatsApp message using the template below."
 }
+
+Rules for calendar_events: If a notice mentions a date range (e.g. "from 11 July to 20 July"), combine them into a SINGLE calendar event with both 'date' (start) and 'end_date'. Do NOT create two separate events for a single continuous range.
 
 Rules for whatsapp_message — use this EXACT template:
 
