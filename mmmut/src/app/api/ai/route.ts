@@ -112,9 +112,16 @@ export async function POST(request: Request) {
     }
 
     // Send email notification to Admin unconditionally (even if DB save failed)
+    const emailStatus: { sent: boolean; error?: string } = { sent: false };
     if (notice && notice.title) {
       const dummyId = dbResult?.id || "not-saved-in-db";
-      sendAdminNotification(notice.title, String(dummyId), notice.whatsapp_message).catch(console.error);
+      try {
+        await sendAdminNotification(notice.title, String(dummyId), notice.whatsapp_message);
+        emailStatus.sent = true;
+      } catch (emailErr) {
+        console.error("Email sending failed:", emailErr);
+        emailStatus.error = emailErr instanceof Error ? emailErr.message : String(emailErr);
+      }
     }
 
     return NextResponse.json({
@@ -126,6 +133,7 @@ export async function POST(request: Request) {
       database: dbResult
         ? { saved: true, id: dbResult.id }
         : { saved: false, error: dbError },
+      email: emailStatus,
     });
   } catch (err) {
     return NextResponse.json(
