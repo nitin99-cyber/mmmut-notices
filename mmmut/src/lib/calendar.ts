@@ -13,8 +13,11 @@ export interface CalendarEvent {
   /** Event title, e.g. "Registration Deadline" */
   title: string;
 
-  /** Event date in YYYY-MM-DD format */
+  /** Event start date in YYYY-MM-DD format */
   date: string;
+
+  /** Optional event end date in YYYY-MM-DD format for date ranges */
+  end_date?: string;
 
   /** Brief description for the calendar entry */
   description?: string;
@@ -42,29 +45,45 @@ export interface CalendarEvent {
  * })
  * // Returns: https://calendar.google.com/calendar/render?action=TEMPLATE&text=...
  */
-export function generateCalendarUrl(
+export async function generateCalendarUrl(
   event: Omit<CalendarEvent, "calendar_url">
-): string {
-  const { title, date, description } = event;
+): Promise<string> {
+  const { title, date, end_date, description } = event;
 
   // Google Calendar expects dates in YYYYMMDD format for all-day events
   const formattedDate = date.replace(/-/g, "");
 
-  // For all-day events, end date is the next day
-  const endDate = getNextDay(date).replace(/-/g, "");
+  // If end_date is provided, use the day AFTER end_date for Google Calendar all-day ranges.
+  // Otherwise, use the day AFTER start_date.
+  const endDateStr = end_date ? getNextDay(end_date) : getNextDay(date);
+  const formattedEndDate = endDateStr.replace(/-/g, "");
 
   // Build the Google Calendar URL
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: `MMMUT: ${title}`,
-    dates: `${formattedDate}/${endDate}`,
+    dates: `${formattedDate}/${formattedEndDate}`,
     details: description
       ? `${description}\n\nSource: MMMUT Notice Intelligence Platform`
       : "Source: MMMUT Notice Intelligence Platform",
     location: "MMMUT, Gorakhpur",
   });
 
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  const longUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
+
+  try {
+    const response = await fetch(
+      `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`
+    );
+    if (response.ok) {
+      const shortUrl = await response.text();
+      return shortUrl;
+    }
+  } catch (error) {
+    console.error("Failed to shorten calendar URL via TinyURL:", error);
+  }
+
+  return longUrl; // Fallback to original
 }
 
 /**
@@ -73,13 +92,15 @@ export function generateCalendarUrl(
  * @param events - Array of calendar events from AI processing
  * @returns Same events with calendar_url populated
  */
-export function enrichCalendarEvents(
+export async function enrichCalendarEvents(
   events: CalendarEvent[]
-): CalendarEvent[] {
-  return events.map((event) => ({
-    ...event,
-    calendar_url: generateCalendarUrl(event),
-  }));
+): Promise<CalendarEvent[]> {
+  return Promise.all(
+    events.map(async (event) => ({
+      ...event,
+      calendar_url: await generateCalendarUrl(event),
+    }))
+  );
 }
 
 /**
@@ -95,19 +116,23 @@ export function enrichCalendarEvents(
  * // • Registration Deadline (2026-07-20)
  * //   📅 https://calendar.google.com/calendar/render?...
  */
-export function formatCalendarForWhatsApp(
+export async function formatCalendarForWhatsApp(
   events: CalendarEvent[]
-): string {
+): Promise<string> {
   if (events.length === 0) return "";
 
-  const lines = events
-    .map(
-      (e) =>
-        `• ${e.title} (${formatDateHuman(e.date)})\n  📅 ${e.calendar_url || generateCalendarUrl(e)}`
-    )
-    .join("\n");
+  const lines = await Promise.all(
+    events.map(async (e) => {
+      const url = e.calendar_url || (await generateCalendarUrl(e));
+      const dateDisplay = e.end_date 
+        ? `${formatDateHuman(e.date)} to ${formatDateHuman(e.end_date)}`
+        : formatDateHuman(e.date);
+        
+      return `• ${e.title} (${dateDisplay})\n  📅 ${url}`;
+    })
+  );
 
-  return `🗓️ Add to Calendar:\n${lines}`;
+  return `🗓️ *Add to Calendar:*\n${lines.join("\n")}`;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
