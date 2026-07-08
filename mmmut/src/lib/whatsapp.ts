@@ -20,6 +20,7 @@ import { formatCalendarForWhatsApp, type CalendarEvent } from "./calendar";
 export interface WhatsAppMessageInput {
   title: string;
   summary: string;
+  english_translation: string;
   audience: string[];
   important_dates: string[];
   calendar_events: CalendarEvent[];
@@ -34,9 +35,9 @@ export interface WhatsAppMessageInput {
  * @param input - Processed notice data
  * @returns Formatted WhatsApp message string ready to copy-paste
  */
-export function formatWhatsAppMessage(
+export async function formatWhatsAppMessage(
   input: WhatsAppMessageInput
-): string {
+): Promise<string> {
   const sections: string[] = [];
 
   // Header
@@ -64,9 +65,12 @@ export function formatWhatsAppMessage(
   // Calendar Links (only if present)
   if (input.calendar_events.length > 0) {
     sections.push(
-      formatCalendarForWhatsApp(input.calendar_events)
+      await formatCalendarForWhatsApp(input.calendar_events)
     );
   }
+
+  // Complete Translation
+  sections.push(`📝 *Complete Translation:*\n_${input.english_translation}_`);
 
   // Large notice — PDF link for full student list
   if (input.is_large_notice && input.pdf_url) {
