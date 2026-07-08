@@ -169,9 +169,10 @@ export async function runPipeline(
 
   // ─── Step 4: Generate final WhatsApp message ───────────────────
 
-  const whatsappMsg = formatWhatsAppMessage({
+  const whatsappMsg = await formatWhatsAppMessage({
     title: notice.title,
     summary: notice.summary,
+    english_translation: notice.english_translation,
     audience: notice.audience,
     important_dates: notice.important_dates,
     calendar_events: notice.calendar_events,
@@ -246,9 +247,10 @@ export async function runPipelineWithOcr(
     });
   }
 
-  const whatsappMsg = formatWhatsAppMessage({
+  const whatsappMsg = await formatWhatsAppMessage({
     title: notice.title,
     summary: notice.summary,
+    english_translation: notice.english_translation,
     audience: notice.audience,
     important_dates: notice.important_dates,
     calendar_events: notice.calendar_events,
