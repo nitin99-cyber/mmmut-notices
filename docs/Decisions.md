@@ -67,3 +67,20 @@ This document tracks significant technical and architectural decisions made for 
 **Alternatives:**
 - Compile `canvas` with Vercel build flags. *Rejected: brittle and prone to breaking on Vercel updates.*
 - Use a third-party PDF-to-Image API. *Rejected: violates zero-cost requirement.*
+
+## 11. Serverless Email Execution on Vercel
+**Decision:** `await` the background email notification promise before returning the API response.
+**Why:** Vercel uses Serverless Functions which terminate immediately after the HTTP response is sent. A "fire-and-forget" background promise for sending emails via `nodemailer` works locally but is abruptly killed in Vercel before the email can dispatch. Awaiting it guarantees delivery and allows us to return the success/failure status in the JSON response.
+**Alternatives:**
+- Use a background job queue (e.g. Inngest, Upstash QStash). *Rejected: introduces unnecessary complexity and potential cost for a simple admin notification.*
+
+## 12. TinyURL for Google Calendar Links
+**Decision:** Use the free TinyURL API (`tinyurl.com/api-create.php`) on the Next.js server to compress Google Calendar links before injecting them into the WhatsApp message.
+**Why:** WhatsApp does not support markdown link masking (e.g. `[text](url)`), so raw URLs are displayed. Google Calendar event template URLs are exceptionally long and make the WhatsApp message unreadable. TinyURL provides a free, keyless API that solves this perfectly without violating the zero-cost requirement.
+**Alternatives:**
+- Bitly or Rebrandly. *Rejected: requires API keys, rate limits, and setup overhead.*
+- Leave as long URLs. *Rejected: severely degrades WhatsApp user experience.*
+
+## 13. AI Date Range Parsing
+**Decision:** Instruct the AI schema to extract `end_date` alongside `start_date` (mapped from `date`), and combine date ranges (e.g. "July 11 to July 20") into a single Google Calendar event.
+**Why:** The AI was previously generating separate calendar events for the start and end dates of a single process (like fee submission). Consolidating them natively in the AI schema allows `calendar.ts` to output a single, clean multi-day calendar event link.
