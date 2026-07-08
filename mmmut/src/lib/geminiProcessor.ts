@@ -70,6 +70,14 @@ const AUDIENCE_OPTIONS = [
   "B.Tech 3rd Year",
   "B.Tech 4th Year",
   "B.Tech All Years",
+  "B.Pharma All Years",
+  "B.Pharma 1st Years",
+  "B.Pharma 2nd Years",
+  "B.Pharma 3rd Years",
+  "BBA All Years",
+  "BBA 1st Years",
+  "BBA 2nd Years",
+  "BBA 3rd Years",
   "M.Tech Students",
   "MBA Students",
   "MCA Students",
@@ -84,7 +92,7 @@ const AUDIENCE_OPTIONS = [
   "Electrical Engineering",
   "Mechanical Engineering",
   "Civil Engineering",
-  "Electronics Engineering",
+  "Electronics and Communications  Engineering",
   "Information Technology",
   "Chemical Engineering",
 ] as const;
@@ -101,6 +109,7 @@ This notice contains multiple pages with student lists, roll numbers, hostel all
 - Summarize WHAT the notice is about (e.g., "Hostel allotment list for 2026-27 session").
 - Mention that the full list is available in the original PDF.
 - In the whatsapp_message, include: "📄 View full list in the original PDF"
+- If first page consist list of multiple students(more than 10 ), do not include their names, roll numbers, and other information in the translated notice.
 `
     : "";
 
@@ -126,21 +135,22 @@ Rules for whatsapp_message — use this EXACT template:
 
 📢 *MMMUT NOTICE UPDATE*
 
-🎯 *Audience:* _[comma-separated audience]_
+🎯 *Audience:* _[comma-separated audience in italic form]_
 
 📌 *Notice:* *[Title]*
 
 📝 *Summary:*
 [Summary text]
 
-📖 *Full Notice (Translated):*
-_[Complete english translation text here]_
-
 📅 *Important Dates:*
 • [date 1]
 • [date 2]
 
 [CALENDAR_LINKS]
+
+
+📖 *Full Notice (Translated):*
+_[Complete english translation text here]_
 
 🔗 *Read Full Notice:*
 [NOTICE_LINK]
@@ -150,6 +160,7 @@ Rules for calendar_events:
 - Each event needs: title, date (YYYY-MM-DD), description
 - Do NOT create calendar events for general announcements with no specific deadline
 - If no dates found, return empty array
+- Create one calendar event for full process, ex. if fees submission starts from a particular date and ends on a specific date as mentioned then create a single event with starting date and ending date in description. Do not create multiple events for the same process.
 
 Rules:
 - Translation must be COMPLETE — do not skip any part of the notice.
