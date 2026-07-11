@@ -95,18 +95,9 @@ export async function POST(request: Request) {
       } else {
         dbResult = data;
 
-        // Replace notice link placeholder with PDF URL
-        if (notice.whatsapp_message && dbResult?.id && pdfUrl) {
-          const finalMsg = notice.whatsapp_message
-            .replace(/\[ID\]/g, String(dbResult.id))
-            .replace(/\[NOTICE_LINK\]/g, pdfUrl);
-          notice.whatsapp_message = finalMsg;
-
-          await supabase
-            .from("notices")
-            .update({ whatsapp_message: finalMsg })
-            .eq("id", dbResult.id);
-        }
+        // We no longer need to manually replace [NOTICE_LINK] because the geminiProcessor 
+        // now uses whatsapp.ts which natively builds the message with the PDF URL included.
+        const finalMsg = notice.whatsapp_message;
       }
     } catch (err) {
       dbError =

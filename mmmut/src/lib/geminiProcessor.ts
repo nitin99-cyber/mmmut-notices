@@ -22,6 +22,7 @@
 import { getGeminiClient } from "./gemini";
 import { PDFDocument } from "pdf-lib";
 import { generateCalendarUrl, type CalendarEvent } from "./calendar";
+import { formatWhatsAppMessage } from "./whatsapp";
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -92,15 +93,7 @@ const AUDIENCE_OPTIONS = [
   "Electrical Engineering",
   "Mechanical Engineering",
   "Civil Engineering",
-  "Electronics and Communications  Engineering",
-  "Information Technology",
-  "Chemical Engineering",
-] as const;
-
-// ─── Prompt Builder ──────────────────────────────────────────────────
-
-function buildSystemPrompt(isLargeNotice: boolean = false): string {
-  const largeNoticeInstruction = isLargeNotice
+  "  const largeNoticeInstruction = isLargeNotice
     ? `
 IMPORTANT — LARGE NOTICE:
 This notice contains multiple pages with student lists, roll numbers, hostel allotments, or similar tabular data.
@@ -108,7 +101,6 @@ This notice contains multiple pages with student lists, roll numbers, hostel all
 - Do NOT try to list individual students or roll numbers.
 - Summarize WHAT the notice is about (e.g., "Hostel allotment list for 2026-27 session").
 - Mention that the full list is available in the original PDF.
-- In the whatsapp_message, include: "📄 View full list in the original PDF"
 - If first page consist list of multiple students(more than 10 ), do not include their names, roll numbers, and other information in the translated notice.
 `
     : "";
@@ -127,13 +119,13 @@ The JSON must have this exact structure:
   "summary": "2-4 sentence English summary of the key information. Include what action students need to take, if any.${isLargeNotice ? " Mention that the full student list is available in the original PDF." : ""}",
   "english_translation": "Complete, accurate English translation of the provided notice text. Preserve formatting with newlines. Include all dates, names, and details.",
   "important_dates": ["Array of important dates, format: 'YYYY-MM-DD: Description'. Assume current year 2026 if not specified. Empty array if none."],
-  "calendar_events": [{"title": "Event title", "date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD (optional)", "description": "Brief description for calendar entry"}],
-  "whatsapp_message": "A fully formatted ready-to-send WhatsApp message using the template below."
+  "calendar_events": [{"title": "Event title", "date": "YYYY-MM-DD", "description": "Brief description for calendar entry"}]
 }
 
-Rules for calendar_events: If a notice mentions a date range (e.g. "from 11 July to 20 July"), combine them into a SINGLE calendar event with both 'date' (start) and 'end_date'. Do NOT create two separate events for a single continuous range.
-
-Rules for whatsapp_message — use this EXACT template:
+Rules for calendar_events: 
+For processes with a start date and an end date (e.g., fee submission, registration), DO NOT create multiple events or ranges. Create a SINGLE calendar event set exactly on the DEADLINE date. Write the start date and end date clearly in the 'description' field.
+For example, if registration is July 1 to July 18, set the 'date' to '2026-07-18' and title it 'Registration Deadline'.`;
+}age — use this EXACT template:
 
 📢 *MMMUT NOTICE UPDATE*
 
@@ -460,8 +452,7 @@ interface ParsedResponse {
   whatsapp_message: string;
 }
 
-function parseAIResponse(raw: string): ParsedResponse {
-  // Strip markdown code fences if AI wraps the JSON
+export async function parseAIResponse(raw: string, context: { pdfUrl?: string, isLargeNotice?: boolean }): Promise<ParsedResponse> {
   let cleaned = raw.trim();
   if (cleaned.startsWith("```")) {
     cleaned = cleaned
@@ -469,112 +460,55 @@ function parseAIResponse(raw: string): ParsedResponse {
       .replace(/\n?```\s*$/, "");
   }
 
-  try {
-    const data = JSON.parse(cleaned);
-
-    // Parse calendar events with URL generation
-    const calendarEvents: CalendarEvent[] = [];
-    if (Array.isArray(data.calendar_events)) {
-      for (const event of data.calendar_events) {
-        if (event.title && event.date) {
-          const calEvent: CalendarEvent = {
-            title: String(event.title),
-            date: String(event.date),
-            description: String(event.description || ""),
-            calendar_url: generateCalendarUrl({
+        for (const event of data.calendar_events) {
+          if (event.title && event.date) {
+            const calEvent: CalendarEvent = {
               title: String(event.title),
               date: String(event.date),
-              description: String(
-                event.description || ""
-              ),
-            }),
-          };
-          calendarEvents.push(calEvent);
+              description: String(event.description || ""),
+            };
+            calEvent.calendar_url = await generateCalendarUrl(calEvent);
+            calendarEvents.push(calEvent);
+          }
         }
       }
+
+      const parsed: ParsedResponse = {
+        title: String(data.title || "Untitled Notice").substring(0, 200),
+        category: NOTICE_CATEGORIES.includes(data.category) ? data.category : "Other",
+        audience: Array.isArray(data.audience) ? data.audience.map(String) : ["All Students"],
+        summary: String(data.summary || "No summary available."),
+        english_translation: String(data.english_translation || "Translation not available."),
+        important_dates: Array.isArray(data.important_dates) ? data.important_dates.map(String) : [],
+        calendar_events: calendarEvents,
+        whatsapp_message: "", // Will be overwritten below
+      };
+
+      // Generate the WhatsApp message using the dedicated TS logic
+      parsed.whatsapp_message = await formatWhatsAppMessage({
+        title: parsed.title,
+        summary: parsed.summary,
+        english_translation: parsed.english_translation,
+        audience: parsed.audience,
+        important_dates: parsed.important_dates,
+        calendar_events: parsed.calendar_events,
+        pdf_url: context.pdfUrl,
+        is_large_notice: !!context.isLargeNotice,
+      });
+
+      resolve(parsed);
+    } catch {
+      console.error("Failed to parse AI response as JSON:", cleaned.substring(0, 500));
+      resolve({
+        title: "Notice (Parse Error)",
+        category: "Other",
+        audience: ["All Students"],
+        summary: "The AI response could not be parsed. The raw output is included in the translation field.",
+        english_translation: raw,
+        important_dates: [],
+        calendar_events: [],
+        whatsapp_message: "Error processing notice.",
+      });
     }
-
-    return {
-      title: String(data.title || "Untitled Notice").substring(
-        0,
-        200
-      ),
-      category: NOTICE_CATEGORIES.includes(data.category)
-        ? data.category
-        : "Other",
-      audience: Array.isArray(data.audience)
-        ? data.audience.map(String)
-        : ["All Students"],
-      summary: String(data.summary || "No summary available."),
-      english_translation: String(
-        data.english_translation || "Translation not available."
-      ),
-      important_dates: Array.isArray(data.important_dates)
-        ? data.important_dates.map(String)
-        : [],
-      calendar_events: calendarEvents,
-      whatsapp_message: String(data.whatsapp_message || ""),
-    };
-  } catch {
-    // If JSON parsing fails, return a fallback
-    console.error(
-      "Failed to parse AI response as JSON:",
-      cleaned.substring(0, 500)
-    );
-
-    return {
-      title: "Notice (Parse Error)",
-      category: "Other",
-      audience: ["All Students"],
-      summary:
-        "The AI response could not be parsed. The raw output is included in the translation field.",
-      english_translation: raw,
-      important_dates: [],
-      calendar_events: [],
-      whatsapp_message: "",
-    };
-  }
-}
-
-// ─── WhatsApp Message Enrichment ─────────────────────────────────────
-
-/**
- * Post-process the WhatsApp message:
- *   1. Add Google Calendar links for each deadline event
- *   2. Add PDF link for large notices
- *   3. Replace [NOTICE_LINK] placeholder if pdfUrl is provided
- */
-function enrichWhatsAppMessage(
-  message: string,
-  calendarEvents: CalendarEvent[],
-  pdfUrl?: string,
-  isLargeNotice: boolean = false
-): string {
-  let enriched = message;
-
-  // Replace calendar links placeholder
-  if (enriched.includes("[CALENDAR_LINKS]")) {
-    if (calendarEvents.length > 0) {
-      const calSection = calendarEvents
-        .map((e) => `• *${e.title}* (${e.date})\n  🗓️ ${e.calendar_url}`)
-        .join("\n\n");
-      enriched = enriched.replace("[CALENDAR_LINKS]", `📅 *Add to Calendar:*\n${calSection}`);
-    } else {
-      enriched = enriched.replace("[CALENDAR_LINKS]", ""); // Remove if no events
-    }
-  }
-
-  // Add PDF link for large notices
-  if (isLargeNotice && pdfUrl) {
-    if (!enriched.includes("View full list")) {
-      enriched += `\n\n📄 View full student list:\n${pdfUrl}`;
-    }
-  }
-
-  // Replace notice link placeholder
-  if (pdfUrl && enriched.includes("[NOTICE_LINK]")) {
-    enriched = enriched.replace("[NOTICE_LINK]", pdfUrl);
-  }
-
-  return enriched;
+  });
 }
