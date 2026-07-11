@@ -29,3 +29,6 @@ export const MAX_NOTICES_PER_RUN = 50;
 
 /** When true, scraper discovers notices but skips DB writes and PDF downloads */
 export const DRY_RUN: boolean = process.argv.includes('--dry-run');
+
+/** Base URL for the Next.js API (used to trigger automated pipeline) */
+export const API_BASE_URL: string = process.env.API_BASE_URL || 'https://mmmut-notices.vercel.app';

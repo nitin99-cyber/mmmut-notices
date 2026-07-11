@@ -5,7 +5,7 @@ import {
 } from "@/lib/geminiProcessor";
 import { detectLargeNotice } from "@/lib/noticeRouter";
 import { getServerSupabase } from "@/lib/supabase";
-import { sendAdminNotification } from "@/lib/email";
+import { sendAdminNotification, sendFailureNotification } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
@@ -49,6 +49,9 @@ export async function POST(request: Request) {
       }
     } catch (err) {
       aiError = err instanceof Error ? err.message : String(err);
+      
+      // Notify admin of failure so they can process manually
+      await sendFailureNotification(aiError).catch(console.error);
 
       return NextResponse.json(
         {

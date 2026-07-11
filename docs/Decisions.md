@@ -84,3 +84,14 @@ This document tracks significant technical and architectural decisions made for 
 ## 13. AI Date Range Parsing
 **Decision:** Instruct the AI schema to extract `end_date` alongside `start_date` (mapped from `date`), and combine date ranges (e.g. "July 11 to July 20") into a single Google Calendar event.
 **Why:** The AI was previously generating separate calendar events for the start and end dates of a single process (like fee submission). Consolidating them natively in the AI schema allows `calendar.ts` to output a single, clean multi-day calendar event link.
+## 14. Scraper 404 "Dead Link" Caching
+**Decision:** If a PDF download fails with an HTTP 404 error during the scraper run, immediately log the notice to the database with `status: 'dead_link'` and a dummy hash, instead of just failing.
+**Why:** The university often leaves HTML links on the `AllRecord` page for PDFs they have already deleted from their server. Previously, the scraper would fail to download them, drop them from the current run, and then indefinitely retry downloading them every 30 minutes, spamming the logs. Caching them as dead links allows the URL duplicate-checker to instantly ignore them on all future runs.
+
+## 15. Real-Time Scraper AI Pipeline Automation
+**Decision:** Have the Node.js scraper proactively trigger the Vercel AI pipeline (`/api/ocr` and `/api/ai`) using native `fetch` and `FormData` immediately after finding a new working PDF.
+**Why:** The previous architecture required the admin to manually click "Process" on the dashboard for every new job in `processing_jobs`. By making the scraper act as a client that POSTs the PDF directly to the production endpoints, the system becomes 100% autonomous. The admin now simply receives a success (or failure) email without ever having to log in to process notices manually.
+
+## 16. Proactive AI Failure Notifications
+**Decision:** Update `/api/ai` to dispatch an explicit "Failure Email" to the admin if the Gemini AI generation crashes or times out.
+**Why:** With the pipeline now fully automated by the scraper, the admin is completely hands-off. If the AI fails (e.g., rate limits, bad PDF format), the notice would silently get stuck in a pending state. A proactive failure email ensures the admin is alerted to manually intervene via the dashboard only when absolutely necessary.

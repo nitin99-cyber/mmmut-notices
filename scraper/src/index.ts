@@ -17,7 +17,9 @@ import { parseNoticePage } from './parser.js';
 import { checkDuplicate } from './duplicate.js';
 import { downloadPdf } from './downloader.js';
 import { computeHash } from './hash.js';
-import { createProcessingJob } from './queue.js';
+import { createProcessingJob, markJobCompleted } from './queue.js';
+import { logExecution, type ScraperResult } from './logger.js';
+import { triggerAIPipeline } from './pipeline.js';
 import { logExecution, type ScraperResult } from './logger.js';
 
 async function main(): Promise<void> {
@@ -87,8 +89,30 @@ async function main(): Promise<void> {
       }
 
       // Download PDF
-      const pdfBuffer = await downloadPdf(notice.pdf_url);
-      const hash = computeHash(pdfBuffer);
+      let pdfBuffer: Buffer;
+      let hash = "";
+      
+      try {
+        pdfBuffer = await downloadPdf(notice.pdf_url);
+        hash = computeHash(pdfBuffer);
+      } catch (dlError) {
+        if (dlError instanceof Error && dlError.message.includes('404')) {
+          console.warn(`☠️ Dead link detected (404). Marking to ignore in future runs: ${notice.title}`);
+          await supabase
+            .from('scraped_notices')
+            .insert({
+              title: notice.title,
+              pdf_url: notice.pdf_url,
+              source_url: notice.source_url,
+              publish_date: notice.publish_date || null,
+              pdf_hash: `dead_404_${Date.now()}_${Math.random()}`,
+              status: 'dead_link',
+            });
+          failCount++;
+          continue;
+        }
+        throw dlError; // Throw other network errors to be caught by the main catch block
+      }
 
       // Content-hash duplicate check (catches re-uploads at new URLs)
       const hashCheck = await checkDuplicate(notice.pdf_url, hash);
@@ -116,11 +140,20 @@ async function main(): Promise<void> {
         throw new Error(`Insert failed: ${error.message}`);
       }
 
-      // Create processing job for the downstream pipeline
-      await createProcessingJob(data.id, notice.pdf_url);
+      // Create processing job as a safety net
+      const jobId = await createProcessingJob(data.id, notice.pdf_url);
 
       newCount++;
-      console.log(`✅ New notice: ${notice.title}`);
+      console.log(`✅ New notice saved to DB: ${notice.title}`);
+
+      // Automatically trigger the AI Pipeline
+      const pipelineSuccess = await triggerAIPipeline(pdfBuffer, notice.pdf_url, notice.title);
+      
+      if (pipelineSuccess) {
+        // If the automated pipeline succeeded, mark the job as completed so it doesn't show as pending
+        await markJobCompleted(jobId);
+      }
+      
     } catch (err) {
       failCount++;
       console.error(

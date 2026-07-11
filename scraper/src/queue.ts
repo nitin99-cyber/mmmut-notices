@@ -42,3 +42,23 @@ export async function createProcessingJob(
   console.log(`📦 Created processing job ${data.id} for notice ${noticeId}`);
   return data.id as string;
 }
+
+/**
+ * Mark a processing job as completed.
+ * Used when the automated pipeline successfully processes a notice.
+ */
+export async function markJobCompleted(jobId: string): Promise<void> {
+  const { error } = await supabase
+    .from('processing_jobs')
+    .update({
+      status: 'completed',
+      current_stage: 'finished',
+    })
+    .eq('id', jobId);
+
+  if (error) {
+    console.error(`Failed to mark job ${jobId} as completed: ${error.message}`);
+  } else {
+    console.log(`✅ Job ${jobId} marked as completed.`);
+  }
+}

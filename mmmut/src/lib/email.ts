@@ -71,3 +71,66 @@ ${whatsappMessage}
     console.error("❌ Failed to send admin notification email:", error);
   }
 }
+
+/**
+ * Sends an email notification to the admin when the AI pipeline fails.
+ */
+export async function sendFailureNotification(
+  errorDetails: string,
+  noticeId?: string
+): Promise<void> {
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_APP_PASSWORD;
+  const users = process.env.EMAIL_USERS;
+
+  if (!emailUser || !emailPass) {
+    console.warn("⚠️ Email credentials not configured. Skipping failure notification.");
+    return;
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: emailUser,
+        pass: emailPass,
+      },
+    });
+
+    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/notices`;
+
+    const mailOptions = {
+      from: `"MMMUT Notice Bot" <${emailUser}>`,
+      to: users ? `${emailUser}, ${users}` : emailUser,
+      subject: `⚠️ AI Processing Failed! Manual intervention required`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #d32f2f;">Pipeline Failure</h2>
+          <p>The AI pipeline encountered an error while trying to process a newly scraped notice.</p>
+          
+          <h3 style="color: #333; margin-top: 20px;">Error Details:</h3>
+          <div style="background-color: #ffebee; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-family: monospace; color: #b71c1c; border: 1px solid #ffcdd2;">
+${errorDetails}
+          </div>
+
+          <p style="margin-top: 20px;">The processing job is stuck in the pending state.</p>
+          <p>Please go to the dashboard to manually process this notice.</p>
+          
+          <div style="margin-top: 20px;">
+            <a href="${dashboardUrl}" style="display: inline-block; background-color: #d32f2f; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+              Open Admin Dashboard
+            </a>
+          </div>
+          <p style="margin-top: 30px; font-size: 12px; color: #757575;">
+            Automated alert from the MMMUT Notice Intelligence Platform
+          </p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Admin failure notification email sent.`);
+  } catch (error) {
+    console.error("❌ Failed to send failure notification email:", error);
+  }
+}
