@@ -93,7 +93,15 @@ const AUDIENCE_OPTIONS = [
   "Electrical Engineering",
   "Mechanical Engineering",
   "Civil Engineering",
-  "  const largeNoticeInstruction = isLargeNotice
+  "Electronics and Communications Engineering",
+  "Information Technology",
+  "Chemical Engineering",
+] as const;
+
+// ─── Prompt Builder ──────────────────────────────────────────────────
+
+function buildSystemPrompt(isLargeNotice: boolean = false): string {
+  const largeNoticeInstruction = isLargeNotice
     ? `
 IMPORTANT — LARGE NOTICE:
 This notice contains multiple pages with student lists, roll numbers, hostel allotments, or similar tabular data.
@@ -124,37 +132,7 @@ The JSON must have this exact structure:
 
 Rules for calendar_events: 
 For processes with a start date and an end date (e.g., fee submission, registration), DO NOT create multiple events or ranges. Create a SINGLE calendar event set exactly on the DEADLINE date. Write the start date and end date clearly in the 'description' field.
-For example, if registration is July 1 to July 18, set the 'date' to '2026-07-18' and title it 'Registration Deadline'.`;
-}age — use this EXACT template:
-
-📢 *MMMUT NOTICE UPDATE*
-
-🎯 *Audience:* _[comma-separated audience in italic form]_
-
-📌 *Notice:* *[Title]*
-
-📝 *Summary:*
-[Summary text]
-
-📅 *Important Dates:*
-• [date 1]
-• [date 2]
-
-[CALENDAR_LINKS]
-
-
-📖 *Full Notice (Translated):*
-_[Complete english translation text here]_
-
-🔗 *Read Full Notice:*
-[NOTICE_LINK]
-
-Rules for calendar_events:
-- Extract EVERY actionable deadline (registration, fee payment, exam, submission)
-- Each event needs: title, date (YYYY-MM-DD), description
-- Do NOT create calendar events for general announcements with no specific deadline
-- If no dates found, return empty array
-- Create one calendar event for full process, ex. if fees submission starts from a particular date and ends on a specific date as mentioned then create a single event with starting date and ending date in description. Do not create multiple events for the same process.
+For example, if registration is July 1 to July 18, set the 'date' to '2026-07-18' and title it 'Registration Deadline'.
 
 Rules:
 - Translation must be COMPLETE — do not skip any part of the notice.
@@ -163,9 +141,7 @@ Rules:
 - If general, use "All Students".
 - Pick the MOST specific category.
 - Convert Hindi date formats to YYYY-MM-DD.
-- The summary should highlight the MOST important actionable information.
-- If no important dates, omit that section from whatsapp_message.
-- Leave [NOTICE_LINK] as a placeholder — it will be replaced later.`;
+- The summary should highlight the MOST important actionable information.`;
 }
 
 // ─── Text Processing (Good OCR) ──────────────────────────────────────
@@ -214,7 +190,7 @@ Respond with the JSON structure as instructed.`;
     );
   }
 
-  const parsed = parseAIResponse(raw);
+  const parsed = await parseAIResponse(raw, { pdfUrl: options.pdfUrl, isLargeNotice });
 
   return {
     ...parsed,
@@ -222,12 +198,6 @@ Respond with the JSON structure as instructed.`;
     page_count: pageCount,
     processing_method: method,
     original_hindi_text: ocrText,
-    whatsapp_message: enrichWhatsAppMessage(
-      parsed.whatsapp_message,
-      parsed.calendar_events,
-      pdfUrl,
-      isLargeNotice
-    ),
   };
 }
 
@@ -314,19 +284,13 @@ ${isLargeNotice ? "\n⚠️ This is a LARGE NOTICE — only the first page is pr
     );
   }
 
-  const parsed = parseAIResponse(raw);
+  const parsed = await parseAIResponse(raw, { pdfUrl: options.pdfUrl, isLargeNotice });
 
   return {
     ...parsed,
     is_large_notice: isLargeNotice,
     page_count: pageCount,
     processing_method: method,
-    whatsapp_message: enrichWhatsAppMessage(
-      parsed.whatsapp_message,
-      parsed.calendar_events,
-      pdfUrl,
-      isLargeNotice
-    ),
   };
 }
 
@@ -460,55 +424,60 @@ export async function parseAIResponse(raw: string, context: { pdfUrl?: string, i
       .replace(/\n?```\s*$/, "");
   }
 
-        for (const event of data.calendar_events) {
-          if (event.title && event.date) {
-            const calEvent: CalendarEvent = {
-              title: String(event.title),
-              date: String(event.date),
-              description: String(event.description || ""),
-            };
-            calEvent.calendar_url = await generateCalendarUrl(calEvent);
-            calendarEvents.push(calEvent);
-          }
+  try {
+    const data = JSON.parse(cleaned);
+
+    // Parse calendar events with URL generation
+    const calendarEvents: CalendarEvent[] = [];
+    if (Array.isArray(data.calendar_events)) {
+      for (const event of data.calendar_events) {
+        if (event.title && event.date) {
+          const calEvent: CalendarEvent = {
+            title: String(event.title),
+            date: String(event.date),
+            description: String(event.description || ""),
+          };
+          calEvent.calendar_url = await generateCalendarUrl(calEvent);
+          calendarEvents.push(calEvent);
         }
       }
-
-      const parsed: ParsedResponse = {
-        title: String(data.title || "Untitled Notice").substring(0, 200),
-        category: NOTICE_CATEGORIES.includes(data.category) ? data.category : "Other",
-        audience: Array.isArray(data.audience) ? data.audience.map(String) : ["All Students"],
-        summary: String(data.summary || "No summary available."),
-        english_translation: String(data.english_translation || "Translation not available."),
-        important_dates: Array.isArray(data.important_dates) ? data.important_dates.map(String) : [],
-        calendar_events: calendarEvents,
-        whatsapp_message: "", // Will be overwritten below
-      };
-
-      // Generate the WhatsApp message using the dedicated TS logic
-      parsed.whatsapp_message = await formatWhatsAppMessage({
-        title: parsed.title,
-        summary: parsed.summary,
-        english_translation: parsed.english_translation,
-        audience: parsed.audience,
-        important_dates: parsed.important_dates,
-        calendar_events: parsed.calendar_events,
-        pdf_url: context.pdfUrl,
-        is_large_notice: !!context.isLargeNotice,
-      });
-
-      resolve(parsed);
-    } catch {
-      console.error("Failed to parse AI response as JSON:", cleaned.substring(0, 500));
-      resolve({
-        title: "Notice (Parse Error)",
-        category: "Other",
-        audience: ["All Students"],
-        summary: "The AI response could not be parsed. The raw output is included in the translation field.",
-        english_translation: raw,
-        important_dates: [],
-        calendar_events: [],
-        whatsapp_message: "Error processing notice.",
-      });
     }
-  });
+
+    const parsed: ParsedResponse = {
+      title: String(data.title || "Untitled Notice").substring(0, 200),
+      category: NOTICE_CATEGORIES.includes(data.category) ? data.category : "Other",
+      audience: Array.isArray(data.audience) ? data.audience.map(String) : ["All Students"],
+      summary: String(data.summary || "No summary available."),
+      english_translation: String(data.english_translation || "Translation not available."),
+      important_dates: Array.isArray(data.important_dates) ? data.important_dates.map(String) : [],
+      calendar_events: calendarEvents,
+      whatsapp_message: "", // Will be overwritten below
+    };
+
+    // Generate the WhatsApp message using the dedicated TS logic
+    parsed.whatsapp_message = await formatWhatsAppMessage({
+      title: parsed.title,
+      summary: parsed.summary,
+      english_translation: parsed.english_translation,
+      audience: parsed.audience,
+      important_dates: parsed.important_dates,
+      calendar_events: parsed.calendar_events,
+      pdf_url: context.pdfUrl,
+      is_large_notice: !!context.isLargeNotice,
+    });
+
+    return parsed;
+  } catch (err) {
+    console.error("Failed to parse AI response as JSON:", cleaned.substring(0, 500));
+    return {
+      title: "Notice (Parse Error)",
+      category: "Other",
+      audience: ["All Students"],
+      summary: "The AI response could not be parsed. The raw output is included in the translation field.",
+      english_translation: raw,
+      important_dates: [],
+      calendar_events: [],
+      whatsapp_message: "Error processing notice.",
+    };
+  }
 }
