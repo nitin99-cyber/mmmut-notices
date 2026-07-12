@@ -134,7 +134,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { title, description, date, category } = body as CreateDeadlineBody;
+  const { title, description, date, category } = body as unknown as CreateDeadlineBody;
+
 
   // ------------------------------------------------------------------
   // 2. Validate required fields
@@ -236,7 +237,8 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   }
 
   const { id, title, description, date, category, email_sent, whatsapp_sent } =
-    body as UpdateDeadlineBody;
+    body as unknown as UpdateDeadlineBody;
+
 
   // ------------------------------------------------------------------
   // 2. Validate id

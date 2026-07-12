@@ -501,19 +501,7 @@ function DeadlineCard({
   );
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  fee: "tag-red",
-  exam: "tag-yellow",
-  registration: "tag-blue",
-  other: "",
-};
 
-const CATEGORY_LABELS: Record<string, string> = {
-  fee: "Fee",
-  exam: "Exam",
-  registration: "Registration",
-  other: "Other",
-};
 
 const cardStyles: Record<string, React.CSSProperties> = {
   card: {

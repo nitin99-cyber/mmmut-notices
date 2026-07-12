@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import GlobalNav from '../components/GlobalNav';
-import Footer from '../components/Footer';
+import GlobalNav from './components/GlobalNav';
+import Footer from './components/Footer';
 
 // ─── Inline Style Objects ────────────────────────────────────────────────────
 
