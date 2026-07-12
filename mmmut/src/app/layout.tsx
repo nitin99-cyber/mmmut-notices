@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "600", "700"],
+  display: "swap",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "MMMUT Notice Platform",
+  title: "MMMUT Notice Intelligence Platform",
   description:
-    "AI-powered notice management system for MMMUT — converts Hindi notice PDFs into structured, searchable English content.",
+    "The automated pipeline that scrapes, processes, and distributes MMMUT university notices using advanced OCR and Gemini Vision AI.",
+  keywords: ["MMMUT", "notices", "university", "AI", "OCR", "pipeline"],
 };
 
 export default function RootLayout({
@@ -24,11 +22,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${inter.variable}`}>
+      <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        {children}
+      </body>
     </html>
   );
 }

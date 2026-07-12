@@ -1,6 +1,26 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Link from "next/link";
+import GlobalNav from "@/app/components/GlobalNav";
+import Footer from "@/app/components/Footer";
+
+type PipelineStage = {
+  name: string;
+  status: "pending" | "active" | "done" | "error";
+  detail?: string;
+  timestamp?: string;
+};
+
+type PipelineLog = {
+  ocr_method?: string;
+  ocr_confidence?: number;
+  ocr_char_count?: number;
+  ai_model?: string;
+  processing_method?: string;
+  decision_reason?: string;
+  stages: PipelineStage[];
+};
 
 type PipelineResult = {
   success: boolean;
@@ -36,31 +56,34 @@ type PipelineResult = {
   };
 };
 
-type Step = {
-  label: string;
-  status: "pending" | "active" | "done" | "error";
-  detail?: string;
-};
-
 export default function AdminNoticesPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<PipelineResult | null>(null);
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [pipelineLog, setPipelineLog] = useState<PipelineLog>({ stages: [] });
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const updateStep = (index: number, update: Partial<Step>) => {
-    setSteps((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, ...update } : s))
-    );
+  const addStage = (stage: PipelineStage) => {
+    setPipelineLog((prev) => ({
+      ...prev,
+      stages: [...prev.stages.filter((s) => s.name !== stage.name), stage],
+    }));
+  };
+
+  const updateStage = (name: string, update: Partial<PipelineStage>) => {
+    setPipelineLog((prev) => ({
+      ...prev,
+      stages: prev.stages.map((s) => (s.name === name ? { ...s, ...update } : s)),
+    }));
   };
 
   const handleFile = (f: File) => {
     if (f.type === "application/pdf" || f.name.endsWith(".pdf")) {
       setFile(f);
       setResult(null);
-      setSteps([]);
+      setPipelineLog({ stages: [] });
     }
   };
 
@@ -73,37 +96,28 @@ export default function AdminNoticesPage() {
 
   const processNotice = async () => {
     if (!file) return;
-
     setProcessing(true);
     setResult(null);
+    setPipelineLog({ stages: [] });
 
-    const pipelineSteps: Step[] = [
-      { label: "Uploading PDF", status: "active" },
-      { label: "OCR Processing (EasyOCR)", status: "pending" },
-      { label: "Decision Engine", status: "pending" },
-      { label: "AI Processing (Gemini/Groq)", status: "pending" },
-      { label: "Saving to Database", status: "pending" },
-    ];
-    setSteps(pipelineSteps);
+    // Stage 1: Upload
+    addStage({ name: "Upload PDF", status: "active", timestamp: new Date().toISOString() });
 
     try {
       await new Promise((r) => setTimeout(r, 400));
-      updateStep(0, { status: "done", detail: file.name });
-      updateStep(1, { status: "active", detail: "Extracting text..." });
+      updateStage("Upload PDF", { status: "done", detail: file.name });
 
-      // Step 1: OCR
+      // Stage 2: OCR
+      addStage({ name: "OCR Processing (EasyOCR)", status: "active", detail: "Extracting text from PDF...", timestamp: new Date().toISOString() });
+
       const ocrFormData = new FormData();
       ocrFormData.append("file", file);
 
-      const ocrRes = await fetch("/api/ocr", {
-        method: "POST",
-        body: ocrFormData,
-      });
-
+      const ocrRes = await fetch("/api/ocr", { method: "POST", body: ocrFormData });
       const ocrData = await ocrRes.json();
 
       if (!ocrData.success) {
-        updateStep(1, { status: "error", detail: ocrData.error || "OCR Failed" });
+        updateStage("OCR Processing (EasyOCR)", { status: "error", detail: ocrData.error || "OCR Failed" });
         setResult(ocrData);
         setProcessing(false);
         return;
@@ -112,66 +126,68 @@ export default function AdminNoticesPage() {
       const pOcr = ocrData.ocr;
       const pDecision = ocrData.decision;
 
-      updateStep(1, {
+      updateStage("OCR Processing (EasyOCR)", {
         status: "done",
-        detail: pOcr 
-          ? `${pOcr.confidence}% confidence · ${pOcr.character_count} chars`
-          : "OCR Unavailable (Skipped)",
+        detail: pOcr
+          ? `${pOcr.confidence}% confidence · ${pOcr.character_count} chars · Method: ${pOcr.method}`
+          : "OCR Unavailable — falling back to Vision",
       });
 
-      // Update UI with partial result to show OCR and Decision immediately
+      setPipelineLog((prev) => ({
+        ...prev,
+        ocr_method: pOcr?.method,
+        ocr_confidence: pOcr?.confidence,
+        ocr_char_count: pOcr?.character_count,
+        decision_reason: pDecision?.reason,
+      }));
+
       setResult({
         success: true,
         pipeline: {
           ocr: pOcr,
           decision: pDecision,
-          notice: {} as any,
-          database: {} as any,
-        }
+          notice: {} as never,
+          database: {} as never,
+        },
       });
 
-      updateStep(2, { status: "active" });
-      await new Promise((r) => setTimeout(r, 500)); // Short pause for visual effect
-
-      updateStep(2, {
+      // Stage 3: Decision Engine
+      addStage({ name: "Decision Engine", status: "active", timestamp: new Date().toISOString() });
+      await new Promise((r) => setTimeout(r, 500));
+      updateStage("Decision Engine", {
         status: "done",
         detail: pDecision.use_vision
-          ? "→ Vision Path (OCR too weak)"
-          : "→ Text Path (OCR good)",
+          ? "→ Vision Path selected (OCR confidence too low)"
+          : "→ Text Path selected (OCR confidence sufficient)",
       });
 
-      updateStep(3, {
+      // Stage 4: AI Processing
+      addStage({
+        name: "AI Processing (Gemini)",
         status: "active",
         detail: "Translating, categorizing, summarizing...",
+        timestamp: new Date().toISOString(),
       });
 
-      // Step 2: AI Processing
       const aiFormData = new FormData();
-      if (pDecision.use_vision) {
-        aiFormData.append("file", file);
-      }
+      if (pDecision.use_vision) aiFormData.append("file", file);
       aiFormData.append("useVision", String(pDecision.use_vision));
-      if (pOcr && pOcr.text) {
-        aiFormData.append("ocrText", pOcr.text);
-      }
-      if (pOcr && pOcr.image_base64) {
-        aiFormData.append("imageBase64", pOcr.image_base64);
-      }
+      if (pOcr?.text) aiFormData.append("ocrText", pOcr.text);
+      if (pOcr?.image_base64) aiFormData.append("imageBase64", pOcr.image_base64);
 
-      const aiRes = await fetch("/api/ai", {
-        method: "POST",
-        body: aiFormData,
-      });
-
+      const aiRes = await fetch("/api/ai", { method: "POST", body: aiFormData });
       const aiData = await aiRes.json();
 
       if (!aiData.success) {
-        updateStep(3, { status: "error", detail: aiData.details || aiData.error || "AI failed" });
+        updateStage("AI Processing (Gemini)", {
+          status: "error",
+          detail: aiData.details || aiData.error || "AI processing failed",
+        });
         setResult({
           success: false,
           error: aiData.error,
           details: aiData.details,
-          pipeline: { ocr: pOcr, decision: pDecision } as any
+          pipeline: { ocr: pOcr, decision: pDecision } as never,
         });
         setProcessing(false);
         return;
@@ -180,28 +196,36 @@ export default function AdminNoticesPage() {
       const pNotice = aiData.notice;
       const pDb = aiData.database;
 
-      updateStep(3, {
+      updateStage("AI Processing (Gemini)", {
         status: "done",
-        detail: `${pNotice.processing_method.includes("vision") ? "🔍 Vision" : "📝 Text"} · ${pNotice.category} · ${pNotice.audience.length} audience group(s)`,
+        detail: `${pNotice.processing_method?.includes("vision") ? "Vision" : "Text"} path · Category: ${pNotice.category} · ${pNotice.audience?.length} audience group(s)`,
       });
 
-      updateStep(4, {
+      setPipelineLog((prev) => ({
+        ...prev,
+        ai_model: pNotice.processing_method?.includes("gemini") ? "Gemini" : "Groq",
+        processing_method: pNotice.processing_method,
+      }));
+
+      // Stage 5: Database Save
+      addStage({
+        name: "Save to Database",
         status: pDb.saved ? "done" : "error",
-        detail: pDb.saved ? `Saved (ID: ${pDb.id})` : pDb.error || "Not saved",
+        detail: pDb.saved ? `Saved · ID: ${pDb.id}` : pDb.error || "Not saved",
+        timestamp: new Date().toISOString(),
       });
 
-      // Update UI with final result
       setResult({
         success: true,
-        pipeline: {
-          ocr: pOcr,
-          decision: pDecision,
-          notice: pNotice,
-          database: pDb,
-        }
+        pipeline: { ocr: pOcr, decision: pDecision, notice: pNotice, database: pDb },
       });
-
     } catch (err) {
+      addStage({
+        name: "Error",
+        status: "error",
+        detail: err instanceof Error ? err.message : String(err),
+        timestamp: new Date().toISOString(),
+      });
       setResult({
         success: false,
         error: "Network error",
@@ -215,203 +239,234 @@ export default function AdminNoticesPage() {
   const resetForm = () => {
     setFile(null);
     setResult(null);
-    setSteps([]);
+    setPipelineLog({ stages: [] });
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const getStageIcon = (status: PipelineStage["status"]) => {
+    if (status === "done") return "✓";
+    if (status === "error") return "✕";
+    if (status === "active") return "●";
+    return "○";
+  };
+
+  const getStageColor = (status: PipelineStage["status"]) => {
+    if (status === "done") return "#34c759";
+    if (status === "error") return "#ff3b30";
+    if (status === "active") return "#0071e3";
+    return "#d2d2d7";
+  };
+
   return (
-    <main style={styles.page}>
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.headerInner}>
-          <div style={styles.logo}>
-            <span style={styles.logoIcon}>📄</span>
-            <div>
-              <h1 style={styles.logoTitle}>MMMUT Notice Platform</h1>
-              <p style={styles.logoSubtitle}>Admin · Notice Processor</p>
-            </div>
-          </div>
-          <a href="/" style={styles.homeLink}>
-            ← Back to Home
-          </a>
+    <div style={styles.page}>
+      <GlobalNav />
+
+      {/* Sub-nav breadcrumb */}
+      <div style={styles.subNav}>
+        <div style={styles.subNavInner}>
+          <nav style={styles.breadcrumb}>
+            <Link href="/" style={styles.breadcrumbLink}>Home</Link>
+            <span style={styles.breadcrumbSep}>›</span>
+            <span style={styles.breadcrumbActive}>Admin · Notice Processor</span>
+          </nav>
         </div>
-      </header>
+      </div>
 
-      <div style={styles.content}>
-        {/* Upload Card */}
-        <section style={styles.card}>
-          <h2 style={styles.cardTitle}>Upload Notice PDF</h2>
-          <p style={styles.cardDesc}>
-            Upload a Hindi notice PDF. The system will extract text via EasyOCR,
-            evaluate quality, then use <strong>different AI models</strong> to translate,
-            categorize, identify audience, and summarize.
+      <main style={styles.main}>
+        {/* Page Header */}
+        <div style={styles.pageHeader}>
+          <h1 style={styles.pageTitle}>Notice Processor</h1>
+          <p style={styles.pageSubtitle}>
+            Upload a Hindi notice PDF. The system extracts text via EasyOCR, evaluates quality,
+            then uses Gemini AI to translate, categorize, and summarize.
           </p>
+        </div>
 
-          <div
-            style={{
-              ...styles.dropzone,
-              ...(isDragging ? styles.dropzoneActive : {}),
-              ...(file ? styles.dropzoneHasFile : {}),
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={onDrop}
-            onClick={() => inputRef.current?.click()}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".pdf"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) handleFile(f);
-              }}
-            />
+        <div style={styles.grid}>
+          {/* Left column */}
+          <div style={styles.leftCol}>
 
-            {file ? (
-              <div style={styles.fileInfo}>
-                <span style={styles.fileIcon}>📎</span>
-                <div>
-                  <p style={styles.fileName}>{file.name}</p>
-                  <p style={styles.fileSize}>
-                    {(file.size / 1024).toFixed(1)} KB
-                  </p>
-                </div>
+            {/* Upload Card */}
+            <section style={styles.card}>
+              <h2 style={styles.cardTitle}>Upload Notice PDF</h2>
+              <div
+                style={{
+                  ...styles.dropzone,
+                  ...(isDragging ? styles.dropzoneActive : {}),
+                  ...(file ? styles.dropzoneHasFile : {}),
+                }}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={onDrop}
+                onClick={() => inputRef.current?.click()}
+              >
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept=".pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+                />
+                {file ? (
+                  <div style={styles.fileInfo}>
+                    <div style={styles.fileIconWrap}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#0066cc" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M14 2v6h6" stroke="#0066cc" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p style={styles.fileName}>{file.name}</p>
+                      <p style={styles.fileSize}>{(file.size / 1024).toFixed(1)} KB · PDF</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={styles.dropzoneContent}>
+                    <div style={styles.uploadIconWrap}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="#0066cc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <p style={styles.dropzoneText}>Drop your PDF here, or click to browse</p>
+                    <p style={styles.dropzoneHint}>Only .pdf files accepted</p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div style={styles.dropzoneContent}>
-                <span style={styles.uploadIcon}>⬆️</span>
-                <p style={styles.dropzoneText}>
-                  Drop your PDF here, or click to browse
-                </p>
-                <p style={styles.dropzoneHint}>Only .pdf files accepted</p>
+
+              <div style={styles.actions}>
+                <button
+                  onClick={processNotice}
+                  disabled={!file || processing}
+                  className="btn-primary"
+                  style={{ opacity: (!file || processing) ? 0.4 : 1, cursor: (!file || processing) ? "not-allowed" : "pointer" }}
+                >
+                  {processing ? (
+                    <>
+                      <span style={styles.spinner} />
+                      Processing…
+                    </>
+                  ) : "Process Notice"}
+                </button>
+                {file && !processing && (
+                  <button onClick={resetForm} className="btn-secondary">
+                    Clear
+                  </button>
+                )}
               </div>
-            )}
-          </div>
+            </section>
 
-          <div style={styles.actions}>
-            <button
-              onClick={processNotice}
-              disabled={!file || processing}
-              style={{
-                ...styles.btnPrimary,
-                ...(!file || processing ? styles.btnDisabled : {}),
-              }}
-            >
-              {processing ? "⏳ Processing..." : "🚀 Process Notice"}
-            </button>
+            {/* Pipeline Track Record */}
+            {pipelineLog.stages.length > 0 && (
+              <section style={styles.card}>
+                <h2 style={styles.cardTitle}>AI Pipeline Track Record</h2>
+                <p style={styles.cardDesc}>Full processing audit trail for this notice</p>
 
-            {file && !processing && (
-              <button onClick={resetForm} style={styles.btnSecondary}>
-                Clear
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* Pipeline Steps */}
-        {steps.length > 0 && (
-          <section style={styles.card}>
-            <h2 style={styles.cardTitle}>Pipeline Progress</h2>
-            <div style={styles.stepsContainer}>
-              {steps.map((step, i) => (
-                <div key={i} style={styles.step}>
-                  <span
-                    style={{
-                      ...styles.stepIcon,
-                      ...(step.status === "pending" ? styles.stepPending : {}),
-                    }}
-                  >
-                    {step.status === "done"
-                      ? "✅"
-                      : step.status === "active"
-                      ? "⚡"
-                      : step.status === "error"
-                      ? "❌"
-                      : "⏸️"}
-                  </span>
-                  <div style={styles.stepContent}>
-                    <p style={styles.stepLabel}>{step.label}</p>
-                    {step.detail && (
-                      <p style={styles.stepDetail}>{step.detail}</p>
+                {/* Summary badges */}
+                {(pipelineLog.ocr_method || pipelineLog.processing_method) && (
+                  <div style={styles.pipelineSummary}>
+                    {pipelineLog.ocr_method && (
+                      <span className="tag tag-blue">OCR: {pipelineLog.ocr_method}</span>
+                    )}
+                    {pipelineLog.ocr_confidence !== undefined && (
+                      <span className="tag tag-blue">{pipelineLog.ocr_confidence}% confidence</span>
+                    )}
+                    {pipelineLog.ocr_char_count !== undefined && (
+                      <span className="tag">{pipelineLog.ocr_char_count.toLocaleString()} chars</span>
+                    )}
+                    {pipelineLog.processing_method && (
+                      <span className={`tag ${pipelineLog.processing_method.includes("vision") ? "tag-yellow" : "tag-green"}`}>
+                        {pipelineLog.processing_method.includes("vision") ? "Vision Path" : "Text Path"}
+                      </span>
+                    )}
+                    {pipelineLog.ai_model && (
+                      <span className="tag tag-blue">Model: {pipelineLog.ai_model}</span>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+                )}
 
-        {/* Results */}
-        {result && result.success && result.pipeline && (
-          <>
-            {result.pipeline.ocr ? (
-              <section style={styles.card}>
-                <h2 style={styles.cardTitle}>📊 OCR Results</h2>
-                <div style={styles.statsGrid}>
-                  <div style={styles.stat}>
-                    <span style={styles.statValue}>
-                      {result.pipeline.ocr.confidence}%
-                    </span>
-                    <span style={styles.statLabel}>Confidence</span>
-                  </div>
-                  <div style={styles.stat}>
-                    <span style={styles.statValue}>
-                      {result.pipeline.ocr.character_count.toLocaleString()}
-                    </span>
-                    <span style={styles.statLabel}>Characters</span>
-                  </div>
-                  <div style={styles.stat}>
-                    <span style={styles.statValue}>
-                      {result.pipeline.ocr.method}
-                    </span>
-                    <span style={styles.statLabel}>OCR Method</span>
-                  </div>
-                  <div style={styles.stat}>
-                    <span
-                      style={{
-                        ...styles.statValue,
-                        color:
-                          result.pipeline.decision.use_vision
-                            ? "#fbbf24"
-                            : "#4ade80",
-                      }}
-                    >
-                      {result.pipeline.decision.use_vision
-                        ? "🔍 Vision"
-                        : "📝 Text"}
-                    </span>
-                    <span style={styles.statLabel}>AI Path</span>
-                  </div>
-                </div>
-
-                <div style={styles.decisionBanner}>
-                  <span style={styles.decisionIcon}>
-                    {result.pipeline.decision.use_vision ? "🔍" : "✨"}
-                  </span>
-                  <p style={styles.decisionText}>
-                    {result.pipeline.decision.reason}
-                  </p>
-                </div>
-
-                <div style={styles.textPreview}>
-                  <h3 style={styles.previewTitle}>
-                    OCR Extracted Text (Preview)
-                  </h3>
-                  <p style={styles.previewContent}>
-                    {result.pipeline.ocr.text_preview}...
-                  </p>
+                {/* Stages timeline */}
+                <div style={styles.timeline}>
+                  {pipelineLog.stages.map((stage, i) => (
+                    <div key={i} style={styles.timelineItem}>
+                      <div style={styles.timelineLeft}>
+                        <div style={{
+                          ...styles.timelineDot,
+                          background: getStageColor(stage.status),
+                          color: "white",
+                          animation: stage.status === "active" ? "pulse 1.5s infinite" : "none",
+                        }}>
+                          <span style={{ fontSize: "10px", fontWeight: 600 }}>{getStageIcon(stage.status)}</span>
+                        </div>
+                        {i < pipelineLog.stages.length - 1 && <div style={styles.timelineLine} />}
+                      </div>
+                      <div style={styles.timelineContent}>
+                        <div style={styles.timelineHeader}>
+                          <p style={styles.stageName}>{stage.name}</p>
+                          {stage.timestamp && (
+                            <span style={styles.stageTime}>
+                              {new Date(stage.timestamp).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
+                        {stage.detail && (
+                          <p style={styles.stageDetail}>{stage.detail}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
-            ) : (
+            )}
+          </div>
+
+          {/* Right column — Results */}
+          <div style={styles.rightCol}>
+
+            {/* OCR Results */}
+            {result?.success && result.pipeline?.ocr && (
               <section style={styles.card}>
-                <h2 style={styles.cardTitle}>📊 OCR Results</h2>
+                <h2 style={styles.cardTitle}>OCR Analysis</h2>
+                <div style={styles.statsGrid}>
+                  {[
+                    { value: `${result.pipeline.ocr.confidence}%`, label: "Confidence", color: result.pipeline.ocr.confidence > 70 ? "#34c759" : "#ff9500" },
+                    { value: result.pipeline.ocr.character_count.toLocaleString(), label: "Characters" },
+                    { value: result.pipeline.ocr.method, label: "Method" },
+                    { value: result.pipeline.decision.use_vision ? "Vision" : "Text", label: "AI Path",
+                      color: result.pipeline.decision.use_vision ? "#ff9500" : "#34c759" },
+                  ].map((stat, i) => (
+                    <div key={i} style={styles.statBox}>
+                      <span style={{ ...styles.statValue, color: stat.color || "var(--color-carbon)" }}>{stat.value}</span>
+                      <span style={styles.statLabel}>{stat.label}</span>
+                    </div>
+                  ))}
+                </div>
                 <div style={styles.decisionBanner}>
-                  <span style={styles.decisionIcon}>🔍</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 2 }}>
+                    <circle cx="12" cy="12" r="10" stroke="#0066cc" strokeWidth="1.5"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#0066cc" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <p style={styles.decisionText}>{result.pipeline.decision.reason}</p>
+                </div>
+                {result.pipeline.ocr.text_preview && (
+                  <div style={styles.previewBox}>
+                    <p style={styles.previewLabel}>Extracted Text Preview</p>
+                    <p style={styles.previewText}>{result.pipeline.ocr.text_preview}…</p>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* No OCR */}
+            {result?.success && result.pipeline && !result.pipeline.ocr && (
+              <section style={styles.card}>
+                <h2 style={styles.cardTitle}>OCR Analysis</h2>
+                <div style={styles.decisionBanner}>
                   <p style={styles.decisionText}>
                     {result.pipeline.decision?.reason || "OCR service unavailable → falling back to Gemini Vision"}
                   </p>
@@ -420,285 +475,303 @@ export default function AdminNoticesPage() {
             )}
 
             {/* Processed Notice */}
-            {result.pipeline.notice?.title && (
-            <section style={styles.card}>
-              <h2 style={styles.cardTitle}>📋 Processed Notice</h2>
+            {result?.success && result.pipeline?.notice?.title && (
+              <section style={styles.card}>
+                <h2 style={styles.cardTitle}>Processed Notice</h2>
 
-              {/* Title */}
-              <div style={styles.noticeTitleBox}>
-                <h3 style={styles.noticeTitle}>
-                  {result.pipeline.notice.title}
-                </h3>
-              </div>
-
-              {/* Category + Processing */}
-              <div style={styles.tagRow}>
-                <span style={styles.badge}>
-                  📁 {result.pipeline.notice.category}
-                </span>
-                <span
-                  style={{
-                    ...styles.badge,
-                    ...(result.pipeline.notice.processing_method?.includes("vision")
-                      ? styles.badgeWarning
-                      : styles.badgeSuccess),
-                  }}
-                >
-                  {result.pipeline.notice.processing_method?.includes("vision")
-                    ? "🔍 Vision Path"
-                    : "📝 Text Path"}
-                </span>
-              </div>
-
-              {/* Audience */}
-              <div style={styles.noticeSection}>
-                <h3 style={styles.sectionTitle}>🎯 Target Audience</h3>
-                <div style={styles.audienceGrid}>
-                  {result.pipeline.notice.audience.map((a, i) => (
-                    <span key={i} style={styles.audienceTag}>
-                      {a}
-                    </span>
-                  ))}
+                <div style={styles.noticeTitleBox}>
+                  <h3 style={styles.noticeTitle}>{result.pipeline.notice.title}</h3>
                 </div>
-              </div>
 
-              {/* Summary */}
-              <div style={styles.noticeSection}>
-                <h3 style={styles.sectionTitle}>📝 Summary</h3>
-                <p style={styles.sectionText}>
-                  {result.pipeline.notice.summary}
-                </p>
-              </div>
+                <div style={styles.tagRow}>
+                  <span className="tag tag-blue">{result.pipeline.notice.category}</span>
+                  <span className={`tag ${result.pipeline.notice.processing_method?.includes("vision") ? "tag-yellow" : "tag-green"}`}>
+                    {result.pipeline.notice.processing_method?.includes("vision") ? "Vision Path" : "Text Path"}
+                  </span>
+                  <span className="tag">{result.pipeline.notice.processing_method}</span>
+                </div>
 
-              {/* Important Dates */}
-              {result.pipeline.notice.important_dates.length > 0 && (
+                {/* Audience */}
                 <div style={styles.noticeSection}>
-                  <h3 style={styles.sectionTitle}>📅 Important Dates</h3>
-                  <div style={styles.datesList}>
-                    {result.pipeline.notice.important_dates.map((d, i) => (
-                      <div key={i} style={styles.dateItem}>
-                        <span style={styles.dateIcon}>📌</span>
-                        <span style={styles.dateText}>{d}</span>
-                      </div>
+                  <h3 style={styles.sectionLabel}>Target Audience</h3>
+                  <div style={styles.audienceGrid}>
+                    {result.pipeline.notice.audience?.map((a, i) => (
+                      <span key={i} className="tag">{a}</span>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {/* English Translation */}
-              <div style={styles.noticeSection}>
-                <h3 style={styles.sectionTitle}>🌐 English Translation</h3>
-                <div style={styles.translationBox}>
-                  {result.pipeline.notice.english_translation}
-                </div>
-              </div>
-
-              {/* WhatsApp Preview */}
-              {result.pipeline.notice.whatsapp_message && (
+                {/* Summary */}
                 <div style={styles.noticeSection}>
-                  <h3 style={styles.sectionTitle}>💬 WhatsApp Preview</h3>
-                  <div style={styles.whatsappCard}>
-                    <pre style={styles.whatsappText}>
-                      {result.pipeline?.notice.whatsapp_message}
-                    </pre>
-                    <div style={styles.whatsappActions}>
-                      <button 
-                        style={styles.btnSecondary}
-                        onClick={() => navigator.clipboard.writeText(result.pipeline?.notice.whatsapp_message || '')}
-                      >
-                        📋 Copy
-                      </button>
-                      <button 
-                        style={styles.btnWhatsApp}
-                        onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result.pipeline?.notice.whatsapp_message || '')}`)}
-                      >
-                        📱 WhatsApp
-                      </button>
+                  <h3 style={styles.sectionLabel}>Summary</h3>
+                  <p style={styles.sectionText}>{result.pipeline.notice.summary}</p>
+                </div>
+
+                {/* Important Dates */}
+                {result.pipeline.notice.important_dates?.length > 0 && (
+                  <div style={styles.noticeSection}>
+                    <h3 style={styles.sectionLabel}>Important Dates</h3>
+                    <div style={styles.datesList}>
+                      {result.pipeline.notice.important_dates.map((d, i) => (
+                        <div key={i} style={styles.dateItem}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                            <rect x="3" y="4" width="18" height="18" rx="2" stroke="#0066cc" strokeWidth="1.5"/>
+                            <path d="M16 2v4M8 2v4M3 10h18" stroke="#0066cc" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          <span style={styles.dateText}>{d}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Original Hindi (if available) */}
-              {result.pipeline.notice.original_hindi_text && (
+                {/* English Translation */}
                 <div style={styles.noticeSection}>
-                  <details>
-                    <summary style={styles.detailsSummary}>
-                      📜 View Original Hindi Text (OCR)
-                    </summary>
-                    <pre style={styles.hindiText}>
-                      {result.pipeline.notice.original_hindi_text}
-                    </pre>
-                  </details>
+                  <h3 style={styles.sectionLabel}>English Translation</h3>
+                  <div style={styles.translationBox}>{result.pipeline.notice.english_translation}</div>
                 </div>
-              )}
-            </section>
+
+                {/* WhatsApp Preview */}
+                {result.pipeline.notice.whatsapp_message && (
+                  <div style={styles.noticeSection}>
+                    <h3 style={styles.sectionLabel}>WhatsApp Preview</h3>
+                    <div style={styles.whatsappCard}>
+                      <pre style={styles.whatsappText}>{result.pipeline.notice.whatsapp_message}</pre>
+                      <div style={styles.whatsappActions}>
+                        <button
+                          className="btn-secondary btn-sm"
+                          onClick={() => copyToClipboard(result.pipeline?.notice.whatsapp_message || "")}
+                        >
+                          {copied ? "✓ Copied" : "Copy"}
+                        </button>
+                        <button
+                          className="btn-primary btn-sm"
+                          style={{ background: "#25d366" }}
+                          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result.pipeline?.notice.whatsapp_message || "")}`)}
+                        >
+                          WhatsApp
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Original Hindi */}
+                {result.pipeline.notice.original_hindi_text && (
+                  <div style={styles.noticeSection}>
+                    <details>
+                      <summary style={styles.detailsSummary}>View Original Hindi Text (OCR)</summary>
+                      <pre style={styles.hindiText}>{result.pipeline.notice.original_hindi_text}</pre>
+                    </details>
+                  </div>
+                )}
+              </section>
             )}
 
             {/* Database Status */}
-            {result.pipeline.database?.saved !== undefined && (
-            <section
-              style={{
+            {result?.success && result.pipeline?.database?.saved !== undefined && (
+              <section style={{
                 ...styles.card,
-                ...(result.pipeline.database.saved
-                  ? styles.cardSuccess
-                  : styles.cardWarning),
-              }}
-            >
-              <h2 style={styles.cardTitle}>
-                {result.pipeline.database.saved ? "✅" : "⚠️"} Database
-              </h2>
-              <p style={styles.dbStatus}>
-                {result.pipeline.database.saved
-                  ? `Notice saved successfully with ID: ${result.pipeline.database.id}`
-                  : `Not saved: ${result.pipeline.database.error}`}
-              </p>
-            </section>
+                borderColor: result.pipeline.database.saved ? "rgba(52,199,89,0.4)" : "rgba(255,59,48,0.3)",
+                background: result.pipeline.database.saved ? "rgba(52,199,89,0.04)" : "rgba(255,59,48,0.04)",
+              }}>
+                <div style={styles.dbRow}>
+                  <span style={{ fontSize: "18px" }}>{result.pipeline.database.saved ? "✓" : "✕"}</span>
+                  <div>
+                    <p style={{ ...styles.stageName, color: result.pipeline.database.saved ? "#1a7a3a" : "#a00000" }}>
+                      {result.pipeline.database.saved ? "Saved to Database" : "Not Saved"}
+                    </p>
+                    <p style={styles.stageDetail}>
+                      {result.pipeline.database.saved
+                        ? `ID: ${result.pipeline.database.id}`
+                        : result.pipeline.database.error}
+                    </p>
+                  </div>
+                </div>
+              </section>
             )}
-          </>
-        )}
 
-        {/* Error State */}
-        {result && !result.success && (
-          <section style={{ ...styles.card, ...styles.cardError }}>
-            <h2 style={styles.cardTitle}>❌ Error</h2>
-            <p style={styles.errorText}>{result.error}</p>
-            {result.details && (
-              <pre style={styles.errorDetails}>{result.details}</pre>
+            {/* Error */}
+            {result && !result.success && (
+              <section style={{ ...styles.card, borderColor: "rgba(255,59,48,0.3)" }}>
+                <h2 style={{ ...styles.cardTitle, color: "#a00000" }}>Processing Error</h2>
+                <p style={styles.sectionText}>{result.error}</p>
+                {result.details && <pre style={styles.hindiText}>{result.details}</pre>}
+              </section>
             )}
-          </section>
-        )}
-      </div>
-    </main>
+
+            {/* Empty state */}
+            {!result && pipelineLog.stages.length === 0 && (
+              <section style={{ ...styles.card, textAlign: "center", padding: "48px 24px" }}>
+                <div style={styles.emptyIcon}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#d2d2d7" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="#d2d2d7" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <p style={styles.emptyTitle}>No results yet</p>
+                <p style={styles.emptyDesc}>Upload a PDF and click Process Notice to see results here</p>
+              </section>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(0.95); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
   );
 }
-
-/* ── Inline styles ──────────────────────────────────────────────────── */
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
-    background:
-      "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%)",
-    color: "#e2e8f0",
-    fontFamily:
-      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    background: "var(--surface-canvas)",
+    display: "flex",
+    flexDirection: "column",
   },
-  header: {
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-    backdropFilter: "blur(12px)",
-    background: "rgba(15, 15, 35, 0.8)",
-    position: "sticky" as const,
-    top: 0,
-    zIndex: 50,
+  subNav: {
+    borderBottom: "1px solid #d2d2d7",
+    background: "white",
   },
-  headerInner: {
-    maxWidth: "960px",
+  subNavInner: {
+    maxWidth: "var(--page-max-width)",
     margin: "0 auto",
-    padding: "16px 24px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
+    padding: "10px 24px",
   },
-  logo: {
+  breadcrumb: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "6px",
   },
-  logoIcon: {
-    fontSize: "28px",
-  },
-  logoTitle: {
-    fontSize: "18px",
-    fontWeight: 700,
-    color: "#fff",
-    margin: 0,
-  },
-  logoSubtitle: {
-    fontSize: "12px",
-    color: "#94a3b8",
-    margin: 0,
-  },
-  homeLink: {
-    fontSize: "14px",
-    color: "#818cf8",
+  breadcrumbLink: {
+    fontSize: "var(--text-caption)",
+    color: "var(--color-link-blue)",
     textDecoration: "none",
   },
-  content: {
-    maxWidth: "960px",
+  breadcrumbSep: {
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
+  },
+  breadcrumbActive: {
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
+  },
+  main: {
+    flex: 1,
+    maxWidth: "var(--page-max-width)",
     margin: "0 auto",
-    padding: "32px 24px 64px",
+    padding: "40px 24px 64px",
+    width: "100%",
+  },
+  pageHeader: {
+    marginBottom: "40px",
+  },
+  pageTitle: {
+    fontFamily: "var(--font-sf-pro-display)",
+    fontSize: "var(--text-heading)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
+    letterSpacing: "var(--tracking-heading)",
+    lineHeight: "var(--leading-heading)",
+    marginBottom: "12px",
+  },
+  pageSubtitle: {
+    fontSize: "var(--text-subheading)",
+    fontWeight: "var(--font-weight-light)",
+    color: "var(--color-ash)",
+    letterSpacing: "var(--tracking-subheading)",
+    lineHeight: "var(--leading-subheading)",
+    maxWidth: "680px",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "24px",
+    alignItems: "start",
+  },
+  leftCol: {
     display: "flex",
-    flexDirection: "column" as const,
+    flexDirection: "column",
+    gap: "24px",
+  },
+  rightCol: {
+    display: "flex",
+    flexDirection: "column",
     gap: "24px",
   },
   card: {
-    background: "rgba(30, 30, 60, 0.6)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "16px",
-    padding: "28px",
-    backdropFilter: "blur(8px)",
-  },
-  cardSuccess: {
-    borderColor: "rgba(74, 222, 128, 0.3)",
-    background: "rgba(30, 60, 40, 0.5)",
-  },
-  cardWarning: {
-    borderColor: "rgba(251, 191, 36, 0.3)",
-    background: "rgba(60, 50, 30, 0.5)",
-  },
-  cardError: {
-    borderColor: "rgba(248, 113, 113, 0.3)",
-    background: "rgba(60, 30, 30, 0.5)",
+    background: "white",
+    border: "1px solid #d2d2d7",
+    borderRadius: "var(--radius-cards)",
+    padding: "24px",
   },
   cardTitle: {
-    fontSize: "20px",
-    fontWeight: 700,
-    color: "#fff",
-    marginTop: 0,
-    marginBottom: "12px",
+    fontFamily: "var(--font-sf-pro-display)",
+    fontSize: "var(--text-heading-sm)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
+    letterSpacing: "var(--tracking-heading-sm)",
+    marginBottom: "8px",
   },
   cardDesc: {
-    fontSize: "14px",
-    color: "#94a3b8",
-    marginBottom: "20px",
-    lineHeight: 1.6,
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-ash)",
+    marginBottom: "16px",
+    letterSpacing: "var(--tracking-body-sm)",
   },
   dropzone: {
-    border: "2px dashed rgba(129, 140, 248, 0.3)",
-    borderRadius: "12px",
+    border: "1.5px dashed #d2d2d7",
+    borderRadius: "var(--radius-inputs)",
     padding: "40px 24px",
-    textAlign: "center" as const,
+    textAlign: "center",
     cursor: "pointer",
     transition: "all 0.2s ease",
-    background: "rgba(129, 140, 248, 0.04)",
+    background: "var(--surface-canvas)",
+    marginBottom: "20px",
   },
   dropzoneActive: {
-    borderColor: "#818cf8",
-    background: "rgba(129, 140, 248, 0.1)",
+    borderColor: "var(--color-apple-blue)",
+    background: "rgba(0,113,227,0.04)",
   },
   dropzoneHasFile: {
-    borderColor: "rgba(74, 222, 128, 0.4)",
-    background: "rgba(74, 222, 128, 0.06)",
+    borderColor: "rgba(52,199,89,0.5)",
+    borderStyle: "solid",
+    background: "rgba(52,199,89,0.04)",
   },
   dropzoneContent: {
     display: "flex",
-    flexDirection: "column" as const,
+    flexDirection: "column",
     alignItems: "center",
     gap: "8px",
   },
-  uploadIcon: {
-    fontSize: "32px",
+  uploadIconWrap: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "var(--radius-cards)",
+    background: "rgba(0,102,204,0.08)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "8px",
   },
   dropzoneText: {
-    fontSize: "15px",
-    color: "#c7d2fe",
-    margin: 0,
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-carbon)",
+    fontWeight: "var(--font-weight-regular)",
   },
   dropzoneHint: {
-    fontSize: "12px",
-    color: "#64748b",
-    margin: 0,
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
   },
   fileInfo: {
     display: "flex",
@@ -706,325 +779,297 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     gap: "12px",
   },
-  fileIcon: {
-    fontSize: "24px",
+  fileIconWrap: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "var(--radius-cards)",
+    background: "rgba(0,102,204,0.08)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   fileName: {
-    fontSize: "15px",
-    fontWeight: 600,
-    color: "#fff",
+    fontSize: "var(--text-body-sm)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
     margin: 0,
   },
   fileSize: {
-    fontSize: "12px",
-    color: "#94a3b8",
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
     margin: 0,
   },
   actions: {
     display: "flex",
     gap: "12px",
-    marginTop: "20px",
+    alignItems: "center",
   },
-  btnPrimary: {
-    padding: "12px 28px",
-    borderRadius: "10px",
-    border: "none",
-    background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-    color: "#fff",
-    fontSize: "15px",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.2s",
+  spinner: {
+    display: "inline-block",
+    width: "14px",
+    height: "14px",
+    border: "2px solid rgba(255,255,255,0.3)",
+    borderTopColor: "white",
+    borderRadius: "50%",
+    animation: "spin 0.7s linear infinite",
   },
-  btnDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed",
-  },
-  btnSecondary: {
-    padding: "12px 20px",
-    borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "transparent",
-    color: "#94a3b8",
-    fontSize: "14px",
-    cursor: "pointer",
-  },
-  stepsContainer: {
+  pipelineSummary: {
     display: "flex",
-    flexDirection: "column" as const,
+    flexWrap: "wrap",
+    gap: "8px",
+    marginBottom: "20px",
+  },
+  timeline: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  timelineItem: {
+    display: "flex",
     gap: "12px",
   },
-  step: {
+  timelineLeft: {
     display: "flex",
-    alignItems: "flex-start",
-    gap: "12px",
-    padding: "10px 14px",
-    borderRadius: "10px",
-    background: "rgba(255,255,255,0.03)",
+    flexDirection: "column",
+    alignItems: "center",
   },
-  stepIcon: {
-    fontSize: "18px",
+  timelineDot: {
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
-    marginTop: "2px",
   },
-  stepPending: { opacity: 0.4 },
-  stepContent: {},
-  stepLabel: {
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#e2e8f0",
+  timelineLine: {
+    width: "1px",
+    flex: 1,
+    background: "#d2d2d7",
+    margin: "4px 0",
+    minHeight: "16px",
+  },
+  timelineContent: {
+    paddingBottom: "16px",
+    flex: 1,
+  },
+  timelineHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "8px",
+  },
+  stageName: {
+    fontSize: "var(--text-body-sm)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
     margin: 0,
   },
-  stepDetail: {
-    fontSize: "12px",
-    color: "#94a3b8",
-    margin: "2px 0 0 0",
+  stageTime: {
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
+    flexShrink: 0,
+  },
+  stageDetail: {
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
+    marginTop: "4px",
+    lineHeight: 1.5,
   },
   statsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-    gap: "16px",
-    marginBottom: "20px",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "12px",
+    marginBottom: "16px",
   },
-  stat: {
+  statBox: {
     display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    padding: "16px",
-    borderRadius: "12px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.06)",
+    flexDirection: "column",
+    gap: "4px",
+    padding: "14px",
+    background: "var(--surface-canvas)",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid #d2d2d7",
   },
   statValue: {
-    fontSize: "22px",
-    fontWeight: 700,
-    color: "#c7d2fe",
+    fontSize: "var(--text-heading-sm)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
+    letterSpacing: "var(--tracking-heading-sm)",
+    lineHeight: 1,
+    fontFamily: "var(--font-sf-pro-display)",
   },
   statLabel: {
-    fontSize: "12px",
-    color: "#64748b",
-    marginTop: "4px",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    fontSize: "var(--text-caption)",
+    color: "var(--color-ash)",
+    letterSpacing: "var(--tracking-caption)",
   },
   decisionBanner: {
     display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "12px 16px",
-    borderRadius: "10px",
-    background: "rgba(129, 140, 248, 0.08)",
-    border: "1px solid rgba(129, 140, 248, 0.15)",
-    marginBottom: "16px",
-  },
-  decisionIcon: {
-    fontSize: "20px",
-    flexShrink: 0,
+    alignItems: "flex-start",
+    gap: "8px",
+    padding: "12px 14px",
+    background: "rgba(0,102,204,0.05)",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid rgba(0,102,204,0.15)",
+    marginBottom: "12px",
   },
   decisionText: {
-    fontSize: "13px",
-    color: "#c7d2fe",
-    margin: 0,
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-link-blue)",
     lineHeight: 1.5,
   },
-  textPreview: {
-    marginTop: "8px",
+  previewBox: {
+    background: "var(--surface-canvas)",
+    borderRadius: "var(--radius-cards)",
+    padding: "14px",
+    border: "1px solid #d2d2d7",
   },
-  previewTitle: {
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#94a3b8",
-    marginBottom: "8px",
+  previewLabel: {
+    fontSize: "var(--text-caption)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-ash)",
+    marginBottom: "6px",
+    letterSpacing: "var(--tracking-caption)",
   },
   previewText: {
-    fontSize: "13px",
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-carbon)",
     lineHeight: 1.6,
-    color: "#cbd5e1",
-    background: "rgba(0,0,0,0.3)",
-    padding: "16px",
-    borderRadius: "10px",
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "break-word" as const,
-    maxHeight: "200px",
-    overflow: "auto",
-    margin: 0,
   },
   noticeTitleBox: {
-    padding: "16px 20px",
-    borderRadius: "12px",
-    background:
-      "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1))",
-    border: "1px solid rgba(129, 140, 248, 0.2)",
     marginBottom: "16px",
   },
   noticeTitle: {
-    fontSize: "18px",
-    fontWeight: 700,
-    color: "#fff",
-    margin: 0,
-    lineHeight: 1.4,
-  },
-  whatsappCard: {
-    background: "rgba(16, 185, 129, 0.05)",
-    border: "1px solid rgba(16, 185, 129, 0.2)",
-    borderRadius: "12px",
-    padding: "16px",
-    marginTop: "12px",
-  },
-  whatsappText: {
-    fontSize: "14px",
-    lineHeight: 1.6,
-    color: "#e2e8f0",
-    whiteSpace: "pre-wrap" as const,
-    fontFamily: "inherit",
-    margin: "0 0 16px 0",
-  },
-  whatsappActions: {
-    display: "flex",
-    gap: "12px",
-  },
-  btnWhatsApp: {
-    padding: "10px 16px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#25D366",
-    color: "#fff",
-    fontSize: "14px",
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.2s",
+    fontFamily: "var(--font-sf-pro-display)",
+    fontSize: "var(--text-subheading)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
+    letterSpacing: "var(--tracking-subheading)",
+    lineHeight: "var(--leading-subheading)",
   },
   tagRow: {
     display: "flex",
+    flexWrap: "wrap",
     gap: "8px",
-    flexWrap: "wrap" as const,
     marginBottom: "20px",
   },
-  badge: {
-    display: "inline-block",
-    padding: "5px 14px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: 600,
-    background: "rgba(129, 140, 248, 0.15)",
-    color: "#a5b4fc",
+  noticeSection: {
+    marginBottom: "20px",
   },
-  badgeSuccess: {
-    background: "rgba(74, 222, 128, 0.15)",
-    color: "#4ade80",
+  sectionLabel: {
+    fontSize: "var(--text-caption)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-ash)",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    marginBottom: "8px",
   },
-  badgeWarning: {
-    background: "rgba(251, 191, 36, 0.15)",
-    color: "#fbbf24",
+  sectionText: {
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-carbon)",
+    lineHeight: 1.6,
+    letterSpacing: "var(--tracking-body-sm)",
   },
   audienceGrid: {
     display: "flex",
-    flexWrap: "wrap" as const,
+    flexWrap: "wrap",
     gap: "8px",
-  },
-  audienceTag: {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "6px 14px",
-    borderRadius: "8px",
-    fontSize: "13px",
-    fontWeight: 500,
-    background: "rgba(56, 189, 248, 0.12)",
-    color: "#7dd3fc",
-    border: "1px solid rgba(56, 189, 248, 0.2)",
-  },
-  noticeSection: {
-    marginTop: "20px",
-  },
-  sectionTitle: {
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#94a3b8",
-    marginBottom: "10px",
-  },
-  sectionText: {
-    fontSize: "14px",
-    lineHeight: 1.7,
-    color: "#cbd5e1",
-    background: "rgba(0,0,0,0.2)",
-    padding: "16px",
-    borderRadius: "10px",
-    margin: 0,
   },
   datesList: {
     display: "flex",
-    flexDirection: "column" as const,
+    flexDirection: "column",
     gap: "8px",
   },
   dateItem: {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    padding: "10px 14px",
-    borderRadius: "8px",
-    background: "rgba(251, 191, 36, 0.08)",
-    border: "1px solid rgba(251, 191, 36, 0.15)",
-  },
-  dateIcon: {
-    fontSize: "14px",
-    flexShrink: 0,
+    padding: "8px 12px",
+    background: "var(--surface-canvas)",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid #d2d2d7",
   },
   dateText: {
-    fontSize: "13px",
-    color: "#fde68a",
-    fontWeight: 500,
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-carbon)",
   },
   translationBox: {
-    fontSize: "14px",
-    lineHeight: 1.8,
-    color: "#e2e8f0",
-    background: "rgba(0,0,0,0.25)",
-    padding: "20px",
-    borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.06)",
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "break-word" as const,
-    maxHeight: "400px",
-    overflow: "auto",
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-carbon)",
+    lineHeight: 1.7,
+    padding: "14px",
+    background: "var(--surface-canvas)",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid #d2d2d7",
+    letterSpacing: "var(--tracking-body-sm)",
+  },
+  whatsappCard: {
+    background: "#f0fdf4",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid rgba(37,211,102,0.25)",
+    overflow: "hidden",
+  },
+  whatsappText: {
+    fontSize: "var(--text-body-sm)",
+    color: "#1a3a1a",
+    lineHeight: 1.7,
+    padding: "14px",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    fontFamily: "var(--font-sf-pro-text)",
+  },
+  whatsappActions: {
+    display: "flex",
+    gap: "8px",
+    padding: "12px 14px",
+    borderTop: "1px solid rgba(37,211,102,0.15)",
+    background: "rgba(37,211,102,0.06)",
   },
   detailsSummary: {
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-link-blue)",
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "#94a3b8",
     padding: "8px 0",
+    fontWeight: "var(--font-weight-semibold)",
   },
   hindiText: {
-    fontSize: "13px",
-    lineHeight: 1.6,
-    color: "#94a3b8",
-    background: "rgba(0,0,0,0.3)",
-    padding: "16px",
-    borderRadius: "10px",
-    whiteSpace: "pre-wrap" as const,
-    wordBreak: "break-word" as const,
-    maxHeight: "300px",
-    overflow: "auto",
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-carbon)",
+    lineHeight: 1.7,
+    padding: "14px",
+    background: "var(--surface-canvas)",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid #d2d2d7",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    fontFamily: "var(--font-sf-pro-text)",
     marginTop: "8px",
   },
-  dbStatus: {
-    fontSize: "14px",
-    color: "#e2e8f0",
-    margin: 0,
+  dbRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
   },
-  errorText: {
-    fontSize: "15px",
-    color: "#fca5a5",
-    fontWeight: 600,
-    margin: 0,
+  emptyIcon: {
+    margin: "0 auto 16px",
+    width: "64px",
+    height: "64px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "var(--surface-canvas)",
+    borderRadius: "var(--radius-cards)",
+    border: "1px solid #d2d2d7",
   },
-  errorDetails: {
-    fontSize: "12px",
-    color: "#94a3b8",
-    background: "rgba(0,0,0,0.3)",
-    padding: "12px",
-    borderRadius: "8px",
-    marginTop: "12px",
-    whiteSpace: "pre-wrap" as const,
+  emptyTitle: {
+    fontSize: "var(--text-subheading)",
+    fontWeight: "var(--font-weight-semibold)",
+    color: "var(--color-carbon)",
+    marginBottom: "8px",
+  },
+  emptyDesc: {
+    fontSize: "var(--text-body-sm)",
+    color: "var(--color-ash)",
   },
 };

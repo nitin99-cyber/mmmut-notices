@@ -95,3 +95,15 @@ This document tracks significant technical and architectural decisions made for 
 ## 16. Proactive AI Failure Notifications
 **Decision:** Update `/api/ai` to dispatch an explicit "Failure Email" to the admin if the Gemini AI generation crashes or times out.
 **Why:** With the pipeline now fully automated by the scraper, the admin is completely hands-off. If the AI fails (e.g., rate limits, bad PDF format), the notice would silently get stuck in a pending state. A proactive failure email ensures the admin is alerted to manually intervene via the dashboard only when absolutely necessary.
+
+## 17. Strict Apple-Style Design System Implementation
+**Decision:** Implement the frontend completely using vanilla CSS custom properties matching the Apple design language (SF Pro/Inter, pill buttons, #f5f5f7 canvas, specific blue tokens) instead of relying on generic Tailwind utility classes.
+**Why:** The `DESIGN.md` specification requires a highly specific, restrained aesthetic (e.g., 980px border radii, hairline borders instead of shadows, specific typography tracking). Enforcing this via central CSS variables in `globals.css` ensures strict adherence across all pages and prevents "utility class drift" where developers might accidentally introduce non-compliant spacing or shadows.
+
+## 18. JSONB Pipeline Audit Trail
+**Decision:** Store the complete, multi-stage AI pipeline processing log as a single `pipeline_log` JSONB column on the `notices` table.
+**Why:** Tracking a notice through Upload → OCR → Decision → AI Model → Database requires a flexible schema, as different branches (Text Path vs. Vision Path) produce different metadata (OCR confidence vs. Vision reasoning). A JSONB column avoids creating a complex set of normalized tables for logs that are strictly read-only after creation. It provides full transparency in the Admin and History UI without complex SQL joins.
+
+## 19. Graceful Database Degradation
+**Decision:** Design the new `/api/notices` GET route to gracefully handle missing columns (`sent`, `pipeline_log`) and tables.
+**Why:** During active development and deployment rollouts, the frontend code might deploy slightly before the Supabase SQL migrations are run. If the API strictly expected the new columns, the entire dashboard would crash. By detecting missing columns and normalizing the data (e.g., returning `null` for `pipeline_log`), the UI remains functional for legacy notices while waiting for the migration.
