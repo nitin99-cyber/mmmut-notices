@@ -70,6 +70,19 @@ export async function POST(request: Request) {
     try {
       const supabase = getServerSupabase();
 
+      const pipelineLog = {
+        ocr_method: useVision ? null : "easyocr",
+        ai_model: useVision ? "gemini_vision" : "gemini_text",
+        processing_method: notice.processing_method,
+        decision_reason: useVision ? "Triggered via vision path" : "Triggered via text path",
+        stages: [
+          { name: "Upload & OCR", status: "done", timestamp: new Date().toISOString() },
+          { name: "Decision Engine", status: "done", detail: useVision ? "→ Vision Path" : "→ Text Path", timestamp: new Date().toISOString() },
+          { name: "AI Processing", status: "done", detail: `${notice.processing_method} · ${notice.category}`, timestamp: new Date().toISOString() },
+          { name: "Save to Database", status: "active", timestamp: new Date().toISOString() }
+        ]
+      };
+
       const { data, error } = await supabase
         .from("notices")
         .insert({
@@ -86,6 +99,7 @@ export async function POST(request: Request) {
           processing_method: notice.processing_method,
           pdf_url: pdfUrl || null,
           status: "draft",
+          pipeline_log: pipelineLog,
         })
         .select()
         .single();
