@@ -11,7 +11,12 @@
  * 6. Log execution summary to `system_logs`
  */
 
-import { SCRAPE_URL, MAX_NOTICES_PER_RUN, DRY_RUN } from './config.js';
+import {
+  SCRAPE_URL,
+  MAX_NOTICES_PER_RUN,
+  DRY_RUN,
+  STEALTH_HEADERS,
+} from './config.js';
 import { supabase } from './supabase.js';
 import { parseNoticePage } from './parser.js';
 import { checkDuplicate } from './duplicate.js';
@@ -35,8 +40,7 @@ async function main(): Promise<void> {
 
   const response = await fetch(SCRAPE_URL, {
     headers: {
-      'User-Agent':
-        'MMMUT-Notice-Scraper/1.0 (https://github.com/mmmut-notices)',
+      ...STEALTH_HEADERS,
       Accept: 'text/html,application/xhtml+xml',
     },
     signal: AbortSignal.timeout(30_000),
@@ -87,6 +91,10 @@ async function main(): Promise<void> {
         newCount++;
         continue;
       }
+
+      // Add a small random jitter (1 to 3 seconds) to disguise bot behavior
+      const jitterMs = Math.floor(Math.random() * 2000) + 1000;
+      await new Promise((resolve) => setTimeout(resolve, jitterMs));
 
       // Download PDF
       let pdfBuffer: Buffer;

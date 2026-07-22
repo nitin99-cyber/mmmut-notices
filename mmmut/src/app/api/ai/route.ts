@@ -109,6 +109,31 @@ export async function POST(request: Request) {
       } else {
         dbResult = data;
 
+        // Auto-extract deadlines from calendar_events and insert into the deadlines table
+        if (notice.calendar_events && notice.calendar_events.length > 0) {
+          const categoryLower = notice.category.toLowerCase();
+          const validCategory = ['fee', 'exam', 'registration'].includes(categoryLower) 
+            ? categoryLower 
+            : 'other';
+
+          const deadlineInserts = notice.calendar_events.map((evt: any) => ({
+            title: evt.title,
+            description: evt.description || `From notice: ${notice.title}`,
+            date: evt.date, // Assumes YYYY-MM-DD from AI output
+            category: validCategory,
+            email_sent: false,
+            whatsapp_sent: false,
+          }));
+
+          const { error: dlError } = await supabase
+            .from("deadlines")
+            .insert(deadlineInserts);
+            
+          if (dlError) {
+            console.error("Failed to auto-insert deadlines:", dlError.message);
+          }
+        }
+
         // We no longer need to manually replace [NOTICE_LINK] because the geminiProcessor 
         // now uses whatsapp.ts which natively builds the message with the PDF URL included.
         const finalMsg = notice.whatsapp_message;

@@ -65,6 +65,12 @@ export default function AdminNoticesPage() {
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Reminder generator state
+  const [reminderInput, setReminderInput] = useState("");
+  const [isGeneratingReminder, setIsGeneratingReminder] = useState(false);
+  const [generatedReminder, setGeneratedReminder] = useState("");
+  const [reminderCopied, setReminderCopied] = useState(false);
+
   const addStage = (stage: PipelineStage) => {
     setPipelineLog((prev) => ({
       ...prev,
@@ -249,6 +255,35 @@ export default function AdminNoticesPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const generateReminder = async () => {
+    if (!reminderInput.trim()) return;
+    setIsGeneratingReminder(true);
+    setGeneratedReminder("");
+    try {
+      const res = await fetch("/api/generate-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: reminderInput }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGeneratedReminder(data.message);
+      } else {
+        alert("Failed to generate reminder: " + data.error);
+      }
+    } catch (err) {
+      alert("Network error: " + err);
+    } finally {
+      setIsGeneratingReminder(false);
+    }
+  };
+
+  const copyReminder = () => {
+    navigator.clipboard.writeText(generatedReminder);
+    setReminderCopied(true);
+    setTimeout(() => setReminderCopied(false), 2000);
+  };
+
   const getStageIcon = (status: PipelineStage["status"]) => {
     if (status === "done") return "✓";
     if (status === "error") return "✕";
@@ -361,6 +396,49 @@ export default function AdminNoticesPage() {
               </div>
             </section>
 
+            {/* Short Reminder Generator Card */}
+            <section style={styles.card}>
+              <h2 style={styles.cardTitle}>Short Reminder Generator</h2>
+              <p style={styles.cardDesc}>Quickly generate a standardized WhatsApp reminder from simple text.</p>
+              
+              <textarea
+                style={styles.textArea}
+                rows={3}
+                placeholder="e.g. Last date to pay fee and do course selection is 27th July 2026"
+                value={reminderInput}
+                onChange={(e) => setReminderInput(e.target.value)}
+                disabled={isGeneratingReminder}
+              />
+              
+              <div style={{ ...styles.actions, marginTop: "12px" }}>
+                <button
+                  onClick={generateReminder}
+                  disabled={!reminderInput.trim() || isGeneratingReminder}
+                  className="btn-primary"
+                  style={{ opacity: (!reminderInput.trim() || isGeneratingReminder) ? 0.4 : 1, cursor: (!reminderInput.trim() || isGeneratingReminder) ? "not-allowed" : "pointer" }}
+                >
+                  {isGeneratingReminder ? (
+                    <>
+                      <span style={styles.spinner} />
+                      Generating…
+                    </>
+                  ) : "Generate Reminder (Groq)"}
+                </button>
+              </div>
+
+              {generatedReminder && (
+                <div style={{ marginTop: "16px" }}>
+                  <div style={styles.resultHeader}>
+                    <h3 style={styles.resultTitle}>Generated Message</h3>
+                    <button onClick={copyReminder} style={styles.copyBtn}>
+                      {reminderCopied ? "Copied!" : "Copy Text"}
+                    </button>
+                  </div>
+                  <pre style={styles.preBlock}>{generatedReminder}</pre>
+                </div>
+              )}
+            </section>
+            
             {/* Pipeline Track Record */}
             {pipelineLog.stages.length > 0 && (
               <section style={styles.card}>

@@ -3,6 +3,8 @@
  * PDF downloader with retry logic for fetching notice documents from MMMUT.
  */
 
+import { STEALTH_HEADERS } from './config.js';
+
 /** Maximum number of fetch attempts before giving up */
 const MAX_RETRIES = 3;
 
@@ -33,8 +35,7 @@ export async function downloadPdf(url: string): Promise<Buffer> {
     try {
       const response = await fetch(url, {
         headers: {
-          'User-Agent':
-            'MMMUT-Notice-Scraper/1.0 (https://github.com/mmmut-notices)',
+          ...STEALTH_HEADERS,
           Accept: 'application/pdf,*/*',
         },
         signal: AbortSignal.timeout(30_000), // 30s timeout per attempt
