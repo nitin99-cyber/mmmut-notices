@@ -29,7 +29,7 @@ export async function sendAdminNotification(
     });
 
     const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/notices`;
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
     const mailOptions = {
       from: `"MMMUT Notice Bot" <${emailUser}>`,
@@ -142,7 +142,8 @@ export async function sendDeadlineAlert(
   deadlineTitle: string,
   deadlineDate: string,
   deadlineCategory: string,
-  deadlineDescription: string | null
+  deadlineDescription: string | null,
+  reminderMessage?: string | null
 ): Promise<boolean> {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_APP_PASSWORD;
@@ -162,7 +163,7 @@ export async function sendDeadlineAlert(
       },
     });
 
-    const whatsappMessage = `🚨 *REMINDER: Upcoming Deadline Tomorrow!* 🚨
+    const whatsappMessage = reminderMessage || `🚨 *REMINDER: Upcoming Deadline Tomorrow!* 🚨
 
 *${deadlineTitle}*
 Date: ${deadlineDate}
@@ -172,7 +173,7 @@ Please make sure to complete this process by tomorrow to avoid any issues.
 - MMMUT Notice Intelligence Platform`;
 
     const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/deadlines`;
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
     const mailOptions = {
       from: `"MMMUT Notice Bot" <${emailUser}>`,
@@ -240,7 +241,7 @@ export async function sendShortReminderEmail(
       },
     });
 
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
     const mailOptions = {
       from: `"MMMUT Notice Bot" <${emailUser}>`,
