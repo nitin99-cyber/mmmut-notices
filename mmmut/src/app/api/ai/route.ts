@@ -156,8 +156,30 @@ export async function POST(request: Request) {
         const savedNotice = data as { id: string };
         dbResult = savedNotice;
 
-        // Auto-extract deadlines from calendar_events and insert into the deadlines table
+        // Auto-extract deadlines from calendar_events OR important_dates and insert into the deadlines table
+        let deadlinesToSave: { title: string; date: string; description?: string }[] = [];
+        
         if (notice.calendar_events && notice.calendar_events.length > 0) {
+          deadlinesToSave = notice.calendar_events.map((evt: any) => ({
+            title: evt.title,
+            date: evt.date,
+            description: evt.description
+          }));
+        } else if (notice.important_dates && notice.important_dates.length > 0) {
+          // Fallback to important dates if calendar_events is empty
+          deadlinesToSave = notice.important_dates.map((dateStr: string) => {
+            const parts = dateStr.split(':');
+            const date = parts[0]?.trim() || '';
+            const desc = parts.slice(1).join(':')?.trim() || `From notice: ${notice.title}`;
+            return {
+              title: notice.title,
+              date: date.length === 10 ? date : new Date().toISOString().split('T')[0], // rudimentary fallback
+              description: desc
+            };
+          }).filter(d => d.date && d.date.length === 10 && d.date.startsWith("202")); // filter valid looking dates
+        }
+
+        if (deadlinesToSave.length > 0) {
           const categoryLower = notice.category.toLowerCase();
           const categoryMap: Record<string, string> = {
             'fee': 'fee',
@@ -177,16 +199,28 @@ export async function POST(request: Request) {
             'library': 'other',
           };
           const validCategory = categoryMap[categoryLower] ?? 'other';
+          
+          // Import dynamic to avoid top-level issues if any
+          const { generateGroqReminderMessage } = await import('@/lib/groqReminder');
 
-          const deadlineInserts = notice.calendar_events.map((evt: ProcessedNotice["calendar_events"][number]) => ({
-            notice_id: savedNotice.id,
-            title: evt.title,
-            description: evt.description || `From notice: ${notice.title}`,
-            date: evt.date, // Assumes YYYY-MM-DD from AI output
-            category: validCategory,
-            email_sent: false,
-            whatsapp_sent: false,
-            reminder_message: notice.whatsapp_message,
+          const deadlineInserts = await Promise.all(deadlinesToSave.map(async (evt) => {
+            const prompt = `Title: ${evt.title}\nDate: ${evt.date}\nDescription: ${evt.description || notice.title}\nCategory: ${validCategory}`;
+            let reminderMessage = notice.whatsapp_message;
+            try {
+              reminderMessage = await generateGroqReminderMessage(prompt);
+            } catch (err) {
+              console.warn("Failed to generate Groq reminder for deadline, using default notice message:", err);
+            }
+            return {
+              notice_id: savedNotice.id,
+              title: evt.title,
+              description: evt.description || `From notice: ${notice.title}`,
+              date: evt.date,
+              category: validCategory,
+              email_sent: false,
+              whatsapp_sent: false,
+              reminder_message: reminderMessage,
+            };
           }));
 
           const { error: dlError } = await supabase
