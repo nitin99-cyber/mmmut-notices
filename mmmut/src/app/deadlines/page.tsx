@@ -60,10 +60,14 @@ export default function DeadlinesPage() {
     try {
       const res = await fetch("/api/deadlines");
       const data = await res.json();
-      if (Array.isArray(data.data)) {
+      if (!res.ok || !data.success) {
+        setError(data.error || "Failed to load deadlines.");
+        setDeadlines([]);
+      } else if (Array.isArray(data.data)) {
         setDeadlines(data.data);
-      } else if (data.warning) {
-        setError(data.warning);
+        if (data.meta?.warning) setError(data.meta.warning);
+      } else if (data.meta?.warning) {
+        setError(data.meta.warning);
         setDeadlines([]);
       }
     } catch {
@@ -108,11 +112,12 @@ export default function DeadlinesPage() {
     const msg = buildWhatsAppMessage(dl);
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
     try {
-      await fetch("/api/deadlines", {
+      const res = await fetch("/api/deadlines", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: dl.id, whatsapp_sent: true }),
       });
+      if (!res.ok) throw new Error("Failed to update WhatsApp status");
       setDeadlines((prev) => prev.map((d) => d.id === dl.id ? { ...d, whatsapp_sent: true } : d));
     } catch {
       // silent
@@ -121,14 +126,51 @@ export default function DeadlinesPage() {
     }
   };
 
+  const generateAiReminder = async (dl: Deadline) => {
+    if (!confirm("This will use Groq AI to generate and send a WhatsApp/Email reminder. Proceed?")) return;
+    
+    setUpdatingId(dl.id + "_ai");
+    try {
+      const prompt = `Title: ${dl.title}\nDate: ${dl.date}\nDescription: ${dl.description || "N/A"}\nCategory: ${dl.category}`;
+      const res = await fetch("/api/generate-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        alert("Failed to generate reminder: " + (data.error || "Unknown error"));
+        return;
+      }
+      
+      alert("AI Reminder Sent!\n\n" + data.message);
+      
+      // Update local state to mark as sent
+      setDeadlines((prev) => prev.map((d) => d.id === dl.id ? { ...d, whatsapp_sent: true, email_sent: true } : d));
+      
+      // Also update in DB
+      await fetch("/api/deadlines", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: dl.id, whatsapp_sent: true, email_sent: true }),
+      });
+    } catch (err: any) {
+      alert("Error generating AI reminder: " + err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const markEmailSent = async (id: string) => {
     setUpdatingId(id);
     try {
-      await fetch("/api/deadlines", {
+      const res = await fetch("/api/deadlines", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, email_sent: true }),
       });
+      if (!res.ok) throw new Error("Failed to update email status");
       setDeadlines((prev) => prev.map((d) => d.id === id ? { ...d, email_sent: true } : d));
     } catch {
       // silent
@@ -141,7 +183,8 @@ export default function DeadlinesPage() {
     if (!confirm("Delete this deadline?")) return;
     setDeletingId(id);
     try {
-      await fetch(`/api/deadlines?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/deadlines?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete deadline");
       setDeadlines((prev) => prev.filter((d) => d.id !== id));
     } catch {
       // silent
@@ -292,6 +335,7 @@ export default function DeadlinesPage() {
                       urgency={getUrgency(getDaysRemaining(dl.date))}
                       formatDate={formatDate}
                       onWhatsApp={() => markWhatsAppSent(dl)}
+                      onAiReminder={() => generateAiReminder(dl)}
                       onEmailSent={() => markEmailSent(dl.id)}
                       onDelete={() => deleteDeadline(dl.id)}
                       updatingId={updatingId}
@@ -319,6 +363,7 @@ export default function DeadlinesPage() {
                       urgency={getUrgency(getDaysRemaining(dl.date))}
                       formatDate={formatDate}
                       onWhatsApp={() => markWhatsAppSent(dl)}
+                      onAiReminder={() => generateAiReminder(dl)}
                       onEmailSent={() => markEmailSent(dl.id)}
                       onDelete={() => deleteDeadline(dl.id)}
                       updatingId={updatingId}
@@ -417,7 +462,7 @@ export default function DeadlinesPage() {
 // Deadline Card Component
 function DeadlineCard({
   dl, days, urgency, formatDate,
-  onWhatsApp, onEmailSent, onDelete,
+  onWhatsApp, onAiReminder, onEmailSent, onDelete,
   updatingId, deletingId,
 }: {
   dl: Deadline;
@@ -425,6 +470,7 @@ function DeadlineCard({
   urgency: { label: string; borderColor: string; bgColor: string; textColor: string };
   formatDate: (d: string) => string;
   onWhatsApp: () => void;
+  onAiReminder: () => void;
   onEmailSent: () => void;
   onDelete: () => void;
   updatingId: string | null;
@@ -482,16 +528,24 @@ function DeadlineCard({
         <button
           className="btn-secondary btn-sm"
           onClick={onWhatsApp}
-          disabled={updatingId === dl.id}
+          disabled={updatingId === dl.id || updatingId === dl.id + "_ai"}
           style={{ borderColor: "#25d366", color: "#1a7a3a" }}
         >
           {updatingId === dl.id ? "…" : "Share WhatsApp"}
+        </button>
+        <button
+          className="btn-primary btn-sm"
+          onClick={onAiReminder}
+          disabled={updatingId === dl.id || updatingId === dl.id + "_ai"}
+          style={{ background: "#7000e3", borderColor: "#7000e3", color: "white" }}
+        >
+          {updatingId === dl.id + "_ai" ? "Generating…" : "✨ AI Reminder (Groq)"}
         </button>
         {!dl.email_sent && days <= 1 && (
           <button
             className="btn-secondary btn-sm"
             onClick={onEmailSent}
-            disabled={updatingId === dl.id}
+            disabled={updatingId === dl.id || updatingId === dl.id + "_ai"}
           >
             {updatingId === dl.id ? "…" : "Mark Email Sent"}
           </button>

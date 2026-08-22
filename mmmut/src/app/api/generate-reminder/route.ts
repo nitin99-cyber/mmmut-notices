@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendShortReminderEmail } from "@/lib/email";
+import { getOpenWAConfig, sendWhatsAppText } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
   try {
@@ -67,12 +68,17 @@ Do NOT include any extra text, pleasantries, or markdown blocks. Just output the
 
     const finalMessage = message.trim();
 
-    // Send email asynchronously (don't await so we don't block the UI response)
-    sendShortReminderEmail(prompt, finalMessage).catch(err => {
-      console.error("Failed to send background short reminder email:", err);
-    });
+    const emailSent = await sendShortReminderEmail(prompt, finalMessage);
+    const whatsappConfigured = !!getOpenWAConfig();
+    const whatsapp = whatsappConfigured
+      ? await sendWhatsAppText(finalMessage)
+      : { success: false, error: "OpenWA is not configured" };
 
-    return NextResponse.json({ success: true, message: finalMessage });
+    return NextResponse.json({
+      success: true,
+      message: finalMessage,
+      delivery: { email_sent: emailSent, whatsapp_sent: whatsapp.success, whatsapp_error: whatsapp.error },
+    });
   } catch (error: any) {
     console.error("Generate reminder error:", error);
     return NextResponse.json(
