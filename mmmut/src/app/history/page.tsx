@@ -53,10 +53,10 @@ export default function HistoryPage() {
     try {
       const res = await fetch("/api/notices");
       const data = await res.json();
-      if (data.notices) {
-        setNotices(data.notices);
-      } else if (data.warning) {
-        setError(data.warning);
+      if (data.data) {
+        setNotices(data.data);
+      } else if (data.meta && data.meta.warnings) {
+        setError(data.meta.warnings.join(", "));
         setNotices([]);
       }
     } catch (err) {

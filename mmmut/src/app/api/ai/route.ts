@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import {
+  type ProcessedNotice,
   processNoticeFromText,
   processNoticeFromVision,
 } from "@/lib/geminiProcessor";
 import { detectLargeNotice } from "@/lib/noticeRouter";
 import { getServerSupabase } from "@/lib/supabase";
 import { sendAdminNotification, sendFailureNotification } from "@/lib/email";
+import {
+  isNoticeSuccessfullyParsed,
+  publishNoticeToWhatsAppChannel,
+  getOpenWAConfig,
+} from "@/lib/whatsapp";
 
 export async function POST(request: Request) {
   try {
@@ -63,22 +69,62 @@ export async function POST(request: Request) {
       );
     }
 
+    // ─── STRICT VALIDATION: Check if notice was successfully parsed ───────
+    const parseValidation = isNoticeSuccessfullyParsed(notice);
+    if (!parseValidation.valid) {
+      const errorMsg = `Notice parsing incomplete/invalid: ${parseValidation.reason}`;
+      console.warn(`⚠️ [AI Route] ${errorMsg}`);
+      await sendFailureNotification(errorMsg).catch(console.error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMsg,
+          details: parseValidation.reason,
+          notice,
+        },
+        { status: 422 }
+      );
+    }
+
+    // ─── WhatsApp Channel Broadcast (OpenWA) ─────────────────────────────
+    // Broadcast ONLY if notice is successfully parsed and auto-publishing is enabled or OpenWA configured
+    let whatsappBroadcast: { sent: boolean; messageId?: string; error?: string } = { sent: false };
+    const autoPublish = process.env.AUTO_PUBLISH_WHATSAPP !== "false";
+    const openwaConfig = getOpenWAConfig();
+
+    if (autoPublish && openwaConfig) {
+      console.log(`📡 [AI Route] Triggering automated WhatsApp Channel broadcast for: "${notice.title}"`);
+      const waResult = await publishNoticeToWhatsAppChannel(notice);
+      if (waResult.success) {
+        whatsappBroadcast = { sent: true, messageId: waResult.messageId };
+        console.log(`✅ [AI Route] Successfully posted to WhatsApp Channel.`);
+      } else {
+        whatsappBroadcast = { sent: false, error: waResult.error };
+        console.warn(`⚠️ [AI Route] WhatsApp Channel post warning:`, waResult.error);
+      }
+    } else {
+      console.log(`ℹ️ [AI Route] WhatsApp auto-publish skipped (OpenWA configured: ${!!openwaConfig}, AUTO_PUBLISH: ${process.env.AUTO_PUBLISH_WHATSAPP})`);
+    }
+
     // Save to Supabase
-    let dbResult = null;
-    let dbError = null;
+    let dbResult: { id: string } | null = null;
+    let dbError: string | null = null;
 
     try {
       const supabase = getServerSupabase();
 
       const pipelineLog = {
         ocr_method: useVision ? null : "easyocr",
-        ai_model: useVision ? "gemini_vision" : "gemini_text",
+        ai_model: notice.processing_method, // Reflects actual model: gemini_text | gemini_vision | groq_text | groq_vision
         processing_method: notice.processing_method,
         decision_reason: useVision ? "Triggered via vision path" : "Triggered via text path",
+        whatsapp_broadcast: whatsappBroadcast,
         stages: [
           { name: "Upload & OCR", status: "done", timestamp: new Date().toISOString() },
           { name: "Decision Engine", status: "done", detail: useVision ? "→ Vision Path" : "→ Text Path", timestamp: new Date().toISOString() },
           { name: "AI Processing", status: "done", detail: `${notice.processing_method} · ${notice.category}`, timestamp: new Date().toISOString() },
+          { name: "WhatsApp Broadcast", status: whatsappBroadcast.sent ? "done" : "skipped", detail: whatsappBroadcast.sent ? "Sent to Channel" : (whatsappBroadcast.error || "Manual publish"), timestamp: new Date().toISOString() },
           { name: "Save to Database", status: "active", timestamp: new Date().toISOString() }
         ]
       };
@@ -98,7 +144,7 @@ export async function POST(request: Request) {
           page_count: notice.page_count,
           processing_method: notice.processing_method,
           pdf_url: pdfUrl || null,
-          status: "draft",
+          sent: whatsappBroadcast.sent,
           pipeline_log: pipelineLog,
         })
         .select()
@@ -107,22 +153,40 @@ export async function POST(request: Request) {
       if (error) {
         dbError = error.message;
       } else {
-        dbResult = data;
+        const savedNotice = data as { id: string };
+        dbResult = savedNotice;
 
         // Auto-extract deadlines from calendar_events and insert into the deadlines table
         if (notice.calendar_events && notice.calendar_events.length > 0) {
           const categoryLower = notice.category.toLowerCase();
-          const validCategory = ['fee', 'exam', 'registration'].includes(categoryLower) 
-            ? categoryLower 
-            : 'other';
+          const categoryMap: Record<string, string> = {
+            'fee': 'fee',
+            'scholarship': 'fee',
+            'exam': 'exam',
+            'examination': 'exam',
+            'registration': 'registration',
+            'admission': 'registration',
+            'academic': 'other',
+            'hostel': 'other',
+            'placement': 'other',
+            'research': 'other',
+            'administrative': 'other',
+            'event': 'other',
+            'training/workshop': 'other',
+            'sports': 'other',
+            'library': 'other',
+          };
+          const validCategory = categoryMap[categoryLower] ?? 'other';
 
-          const deadlineInserts = notice.calendar_events.map((evt: any) => ({
+          const deadlineInserts = notice.calendar_events.map((evt: ProcessedNotice["calendar_events"][number]) => ({
+            notice_id: savedNotice.id,
             title: evt.title,
             description: evt.description || `From notice: ${notice.title}`,
             date: evt.date, // Assumes YYYY-MM-DD from AI output
             category: validCategory,
             email_sent: false,
             whatsapp_sent: false,
+            reminder_message: notice.whatsapp_message,
           }));
 
           const { error: dlError } = await supabase
@@ -133,10 +197,6 @@ export async function POST(request: Request) {
             console.error("Failed to auto-insert deadlines:", dlError.message);
           }
         }
-
-        // We no longer need to manually replace [NOTICE_LINK] because the geminiProcessor 
-        // now uses whatsapp.ts which natively builds the message with the PDF URL included.
-        const finalMsg = notice.whatsapp_message;
       }
     } catch (err) {
       dbError =
@@ -160,6 +220,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       notice,
+      whatsapp: whatsappBroadcast,
       large_notice: isLargeNotice
         ? { detected: true, reason: largeCheck.reason }
         : { detected: false },
@@ -179,3 +240,4 @@ export async function POST(request: Request) {
     );
   }
 }
+
