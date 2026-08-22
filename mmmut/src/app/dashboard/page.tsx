@@ -39,7 +39,8 @@ export default function DashboardPage() {
         throw new Error("Failed to fetch dashboard data");
       }
       const json = await res.json();
-      setData(json);
+      if (!json.success) throw new Error(json.error || "Failed to fetch dashboard data");
+      setData(json as DashboardData);
       setError(null);
     } catch (err: any) {
       setError(err.message);

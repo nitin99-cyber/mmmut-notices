@@ -143,14 +143,14 @@ export async function sendDeadlineAlert(
   deadlineDate: string,
   deadlineCategory: string,
   deadlineDescription: string | null
-): Promise<void> {
+): Promise<boolean> {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_APP_PASSWORD;
   const users = process.env.EMAIL_USERS;
 
   if (!emailUser || !emailPass) {
     console.warn("⚠️ Email credentials not configured. Skipping deadline alert.");
-    return;
+    return false;
   }
 
   try {
@@ -208,8 +208,10 @@ ${whatsappMessage}
 
     await transporter.sendMail(mailOptions);
     console.log(`✅ Deadline alert email sent for: ${deadlineTitle}`);
+    return true;
   } catch (error) {
     console.error("❌ Failed to send deadline alert email:", error);
+    return false;
   }
 }
 
@@ -219,14 +221,14 @@ ${whatsappMessage}
 export async function sendShortReminderEmail(
   promptText: string,
   whatsappMessage: string
-): Promise<void> {
+): Promise<boolean> {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_APP_PASSWORD;
   const users = process.env.EMAIL_USERS;
 
   if (!emailUser || !emailPass) {
     console.warn("⚠️ Email credentials not configured. Skipping short reminder email.");
-    return;
+    return false;
   }
 
   try {
@@ -271,7 +273,9 @@ ${whatsappMessage}
 
     await transporter.sendMail(mailOptions);
     console.log(`✅ Short reminder email sent.`);
+    return true;
   } catch (error) {
     console.error("❌ Failed to send short reminder email:", error);
+    return false;
   }
 }

@@ -42,15 +42,14 @@ export async function GET() {
     if (recentNotices) {
       recentNotices.forEach(notice => {
         const pages = notice.page_count || 1;
-        // Estimate: 800 tokens per page for text, 1200 for vision
         const log = notice.pipeline_log as any;
         if (log && log.ai_model) {
-          if (log.ai_model.includes('vision')) {
+          // ai_model stores the processing_method: gemini_text | gemini_vision | groq_text | groq_vision
+          if (log.ai_model.startsWith('groq')) {
+            groq++;
+          } else if (log.ai_model.includes('vision')) {
             geminiVision++;
             estimatedTokens += pages * 1200;
-          } else if (log.ai_model.toLowerCase().includes('groq')) {
-            groq++;
-            // Groq doesn't use Gemini limits, but we can track tokens broadly
           } else {
             geminiText++;
             estimatedTokens += pages * 800;

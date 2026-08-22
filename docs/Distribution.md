@@ -243,40 +243,52 @@ Do NOT render thousands of student names.
 
 ---
 
-# WhatsApp Publisher
+# WhatsApp Publisher (Automated via OpenWA)
 
 Purpose
 
-Generate WhatsApp-ready message.
+Generate WhatsApp-ready formatted messages and automatically broadcast them to the MMMUT WhatsApp Channel/Group via the self-hosted **OpenWA** API Gateway.
 
-This service DOES NOT automatically post.
+Automated Publishing Rules
 
-Administrator reviews and copies the message.
+1. **Strict Parse Validation**: Only notices that have been successfully parsed without errors (valid title, summary, translation, and WhatsApp message) are broadcasted.
+2. **Failure Protection**: If AI parsing fails, WhatsApp broadcast is blocked, and an email failure alert is sent to the admin for manual review.
+3. **Duplicate Prevention**: The `sent` / `whatsapp_sent` status is recorded in the database to prevent duplicate broadcasts.
+4. **Manual Triggering**: Administrators can also preview and manually trigger broadcasting from the Admin Dashboard.
 
-Example
+Configuration
 
-📢 *MMMUT Notice*
+```env
+OPENWA_BASE_URL=http://localhost:2785
+OPENWA_API_KEY=your_api_key
+OPENWA_SESSION_ID=default
+OPENWA_CHANNEL_JID=120363xxxxxx@newsletter
+AUTO_PUBLISH_WHATSAPP=true
+```
 
-📌 PhD Registration
+Message Format Example
 
-🎯 Audience
-Research Scholars
+📢 *MMMUT NOTICE UPDATE*
 
-📅 Deadline
-30 June 2026
+🎯 *Audience:* All Students
 
-📝 Summary
-Registration for PhD students...
+📌 *Notice:* End Semester Examination Schedule 2026
 
-🔗 Read Full Notice
+📝 *Summary:*
+End semester examination schedule for all undergraduate courses has been released. Exams commence from 15th July 2026.
 
-https://notice.nexsus.in/notices/phd-registration-2026
+📅 *Important Dates:*
+• 2026-07-15: Examination Start Date
 
-Rules
+🗓️ *Add to Calendar:*
+• Exam Start: https://calendar.google.com/...
 
-Maximum length should remain concise.
+🔗 *Original Notice:*
+https://mmmut.ac.in/notices/exam-schedule-2026.pdf
 
-Students should click the website for full details.
+━━━━━━━━━━━━━━━━━
+_MMMUT Notice Intelligence_
+
 
 ---
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import GlobalNav from "@/app/components/GlobalNav";
 import Footer from "@/app/components/Footer";
@@ -56,6 +56,26 @@ type PipelineResult = {
   };
 };
 
+// Type for notices fetched from Supabase via /api/notices
+type NoticeRecord = {
+  id: string;
+  title: string | null;
+  category: string | null;
+  audience: string[] | string | null;
+  summary: string | null;
+  whatsapp_message: string | null;
+  processing_method: string | null;
+  pdf_url: string | null;
+  is_large_notice: boolean | null;
+  page_count: number | null;
+  sent: boolean | null;
+  created_at: string;
+  pipeline_log?: {
+    ai_model?: string;
+    stages?: PipelineStage[];
+  } | null;
+};
+
 export default function AdminNoticesPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -63,6 +83,7 @@ export default function AdminNoticesPage() {
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [pipelineLog, setPipelineLog] = useState<PipelineLog>({ stages: [] });
   const [copied, setCopied] = useState(false);
+  const [broadcastStatus, setBroadcastStatus] = useState<{ sending: boolean; message?: string; success?: boolean } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Reminder generator state
@@ -70,6 +91,111 @@ export default function AdminNoticesPage() {
   const [isGeneratingReminder, setIsGeneratingReminder] = useState(false);
   const [generatedReminder, setGeneratedReminder] = useState("");
   const [reminderCopied, setReminderCopied] = useState(false);
+  const [reminderDelivery, setReminderDelivery] = useState<string | null>(null);
+
+  // Notices tracking list state
+  const [notices, setNotices] = useState<NoticeRecord[]>([]);
+  const [noticesLoading, setNoticesLoading] = useState(true);
+  const [noticesError, setNoticesError] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [publishResults, setPublishResults] = useState<Record<string, { success: boolean; message: string }>>({});
+  const [expandedNoticeId, setExpandedNoticeId] = useState<string | null>(null);
+
+  const fetchNotices = useCallback(async () => {
+    setNoticesLoading(true);
+    setNoticesError(null);
+    try {
+      const res = await fetch("/api/notices");
+      const data = await res.json();
+      if (data.success) {
+        setNotices(data.data ?? []);
+      } else {
+        setNoticesError(data.error || "Failed to load notices.");
+      }
+    } catch {
+      setNoticesError("Network error loading notices.");
+    } finally {
+      setNoticesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotices();
+  }, [fetchNotices]);
+
+  // Refresh notices list after a new notice is successfully processed
+  useEffect(() => {
+    if (result?.success && result.pipeline?.database?.saved) {
+      fetchNotices();
+    }
+  }, [result, fetchNotices]);
+
+  const handlePublish = async (noticeId: string, force = false) => {
+    setPublishingId(noticeId);
+    try {
+      const res = await fetch("/api/notices/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: noticeId, force }),
+      });
+      const data = await res.json();
+      setPublishResults((prev) => ({
+        ...prev,
+        [noticeId]: {
+          success: data.success,
+          message: data.success ? "✓ Broadcasted!" : `✕ ${data.error}`,
+        },
+      }));
+      if (data.success) {
+        setNotices((prev) =>
+          prev.map((n) => (n.id === noticeId ? { ...n, sent: true } : n))
+        );
+      }
+    } catch {
+      setPublishResults((prev) => ({
+        ...prev,
+        [noticeId]: { success: false, message: "✕ Network error" },
+      }));
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
+  const handleBroadcastToWhatsApp = async (noticeId?: string, force: boolean = false) => {
+    if (!noticeId) {
+      alert("Please ensure the notice is saved in the database before broadcasting.");
+      return;
+    }
+    setBroadcastStatus({ sending: true });
+    try {
+      const res = await fetch("/api/notices/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: noticeId, force }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBroadcastStatus({
+          sending: false,
+          success: true,
+          message: "✓ Broadcasted to WhatsApp Channel successfully!",
+        });
+      } else {
+        setBroadcastStatus({
+          sending: false,
+          success: false,
+          message: `❌ ${data.error || "Failed to broadcast"}`,
+        });
+      }
+    } catch (err: any) {
+      setBroadcastStatus({
+        sending: false,
+        success: false,
+        message: `❌ ${err.message || "Network error"}`,
+      });
+    }
+  };
+
 
   const addStage = (stage: PipelineStage) => {
     setPipelineLog((prev) => ({
@@ -180,6 +306,7 @@ export default function AdminNoticesPage() {
       aiFormData.append("useVision", String(pDecision.use_vision));
       if (pOcr?.text) aiFormData.append("ocrText", pOcr.text);
       if (pOcr?.image_base64) aiFormData.append("imageBase64", pOcr.image_base64);
+      aiFormData.append("pageCount", String(pOcr?.page_count || 1));
 
       const aiRes = await fetch("/api/ai", { method: "POST", body: aiFormData });
       const aiData = await aiRes.json();
@@ -259,6 +386,7 @@ export default function AdminNoticesPage() {
     if (!reminderInput.trim()) return;
     setIsGeneratingReminder(true);
     setGeneratedReminder("");
+    setReminderDelivery(null);
     try {
       const res = await fetch("/api/generate-reminder", {
         method: "POST",
@@ -268,6 +396,10 @@ export default function AdminNoticesPage() {
       const data = await res.json();
       if (data.success) {
         setGeneratedReminder(data.message);
+        const delivery = data.delivery;
+        setReminderDelivery(
+          `Email: ${delivery?.email_sent ? "sent" : "not sent"} · WhatsApp: ${delivery?.whatsapp_sent ? "sent" : delivery?.whatsapp_error || "not sent"}`
+        );
       } else {
         alert("Failed to generate reminder: " + data.error);
       }
@@ -435,6 +567,9 @@ export default function AdminNoticesPage() {
                     </button>
                   </div>
                   <pre style={styles.preBlock}>{generatedReminder}</pre>
+                  {reminderDelivery && (
+                    <p style={{ ...styles.cardDesc, margin: "8px 0 0" }}>{reminderDelivery}</p>
+                  )}
                 </div>
               )}
             </section>
@@ -612,22 +747,52 @@ export default function AdminNoticesPage() {
                 {/* WhatsApp Preview */}
                 {result.pipeline.notice.whatsapp_message && (
                   <div style={styles.noticeSection}>
-                    <h3 style={styles.sectionLabel}>WhatsApp Preview</h3>
+                    <h3 style={styles.sectionLabel}>WhatsApp Preview & Distribution</h3>
                     <div style={styles.whatsappCard}>
                       <pre style={styles.whatsappText}>{result.pipeline.notice.whatsapp_message}</pre>
+                      
+                      {broadcastStatus?.message && (
+                        <div
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: "6px",
+                            marginBottom: "10px",
+                            fontSize: "13px",
+                            fontWeight: 500,
+                            background: broadcastStatus.success ? "rgba(37, 211, 102, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                            color: broadcastStatus.success ? "#25d366" : "#ef4444",
+                            border: `1px solid ${broadcastStatus.success ? "#25d366" : "#ef4444"}`,
+                          }}
+                        >
+                          {broadcastStatus.message}
+                        </div>
+                      )}
+
                       <div style={styles.whatsappActions}>
                         <button
                           className="btn-secondary btn-sm"
                           onClick={() => copyToClipboard(result.pipeline?.notice.whatsapp_message || "")}
                         >
-                          {copied ? "✓ Copied" : "Copy"}
+                          {copied ? "✓ Copied" : "Copy Message"}
+                        </button>
+                        <button
+                          className="btn-secondary btn-sm"
+                          style={{ borderColor: "#25d366", color: "#25d366" }}
+                          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result.pipeline?.notice.whatsapp_message || "")}`)}
+                        >
+                          Open in Web
                         </button>
                         <button
                           className="btn-primary btn-sm"
-                          style={{ background: "#25d366" }}
-                          onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(result.pipeline?.notice.whatsapp_message || "")}`)}
+                          style={{
+                            background: "#25d366",
+                            opacity: broadcastStatus?.sending ? 0.7 : 1,
+                            cursor: broadcastStatus?.sending ? "not-allowed" : "pointer",
+                          }}
+                          disabled={broadcastStatus?.sending}
+                          onClick={() => handleBroadcastToWhatsApp(result.pipeline?.database?.id)}
                         >
-                          WhatsApp
+                          {broadcastStatus?.sending ? "Broadcasting..." : "🚀 Broadcast to Channel (OpenWA)"}
                         </button>
                       </div>
                     </div>
@@ -693,7 +858,184 @@ export default function AdminNoticesPage() {
             )}
           </div>
         </div>
+
+        {/* ── All Processed Notices Tracking Table ── */}
+        <section style={{ marginTop: "48px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+            <div>
+              <h2 style={{ ...styles.cardTitle, margin: 0, fontSize: "20px" }}>All Processed Notices</h2>
+              <p style={{ ...styles.cardDesc, margin: "4px 0 0" }}>
+                Full history of all notices saved to the database · {notices.length} total
+              </p>
+            </div>
+            <button
+              onClick={fetchNotices}
+              className="btn-secondary"
+              style={{ fontSize: "13px", padding: "6px 14px" }}
+              disabled={noticesLoading}
+            >
+              {noticesLoading ? "Loading…" : "↻ Refresh"}
+            </button>
+          </div>
+
+          {noticesError && (
+            <div style={{ padding: "12px 16px", background: "rgba(255,59,48,0.06)", border: "1px solid rgba(255,59,48,0.3)", borderRadius: "8px", color: "#a00000", fontSize: "14px", marginBottom: "16px" }}>
+              {noticesError}
+            </div>
+          )}
+
+          {noticesLoading && notices.length === 0 ? (
+            <div style={{ padding: "40px", textAlign: "center", color: "#86868b", fontSize: "14px" }}>Loading notices…</div>
+          ) : notices.length === 0 ? (
+            <div style={{ padding: "40px", textAlign: "center", color: "#86868b", fontSize: "14px" }}>No notices in database yet.</div>
+          ) : (
+            <div style={{ overflowX: "auto", borderRadius: "10px", border: "1px solid #d2d2d7", background: "#fff" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <thead>
+                  <tr style={{ background: "#f5f5f7", borderBottom: "1px solid #d2d2d7" }}>
+                    {["Title", "Category", "AI Model", "Pages", "Sent", "Created", "Actions"].map((h) => (
+                      <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 600, color: "#1d1d1f", whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {notices.map((n, idx) => {
+                    const isExpanded = expandedNoticeId === n.id;
+                    const pub = publishResults[n.id];
+                    const modelLabel = n.pipeline_log?.ai_model || n.processing_method || "—";
+                    const isGroq = modelLabel.startsWith("groq");
+                    const isVision = modelLabel.includes("vision");
+                    return (
+                      <React.Fragment key={n.id}>
+                        <tr
+                          key={n.id}
+                          style={{ borderBottom: "1px solid #f0f0f0", background: idx % 2 === 0 ? "#fff" : "#fafafa" }}
+                        >
+                          {/* Title */}
+                          <td style={{ padding: "10px 14px", maxWidth: "260px" }}>
+                            <p style={{ margin: 0, fontWeight: 500, color: "#1d1d1f", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {n.title || "Untitled"}
+                            </p>
+                            {n.summary && (
+                              <p style={{ margin: "2px 0 0", color: "#86868b", fontSize: "12px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {n.summary.substring(0, 80)}…
+                              </p>
+                            )}
+                          </td>
+                          {/* Category */}
+                          <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
+                            <span className="tag tag-blue" style={{ fontSize: "11px" }}>{n.category || "—"}</span>
+                          </td>
+                          {/* AI Model */}
+                          <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
+                            <span className={`tag ${isGroq ? "tag-yellow" : isVision ? "tag-yellow" : "tag-green"}`} style={{ fontSize: "11px" }}>
+                              {modelLabel}
+                            </span>
+                          </td>
+                          {/* Pages */}
+                          <td style={{ padding: "10px 14px", color: "#86868b", whiteSpace: "nowrap" }}>
+                            {n.page_count ?? "—"}{n.is_large_notice ? " 📋" : ""}
+                          </td>
+                          {/* Sent status */}
+                          <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
+                            <span style={{
+                              display: "inline-block", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 600,
+                              background: n.sent ? "rgba(52,199,89,0.12)" : "rgba(255,149,0,0.12)",
+                              color: n.sent ? "#1a7a3a" : "#8a5500",
+                            }}>
+                              {n.sent ? "✓ Sent" : "Draft"}
+                            </span>
+                          </td>
+                          {/* Created */}
+                          <td style={{ padding: "10px 14px", color: "#86868b", whiteSpace: "nowrap", fontSize: "12px" }}>
+                            {new Date(n.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </td>
+                          {/* Actions */}
+                          <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                              {/* Expand WhatsApp preview */}
+                              <button
+                                className="btn-secondary btn-sm"
+                                style={{ fontSize: "11px", padding: "4px 10px" }}
+                                onClick={() => setExpandedNoticeId(isExpanded ? null : n.id)}
+                              >
+                                {isExpanded ? "▲ Hide" : "▼ Preview"}
+                              </button>
+                              {/* PDF link */}
+                              {n.pdf_url && (
+                                <a href={n.pdf_url} target="_blank" rel="noopener noreferrer"
+                                  className="btn-secondary btn-sm"
+                                  style={{ fontSize: "11px", padding: "4px 10px", textDecoration: "none", color: "inherit" }}
+                                >
+                                  PDF
+                                </a>
+                              )}
+                              {/* Publish button */}
+                              <button
+                                className="btn-primary btn-sm"
+                                style={{
+                                  fontSize: "11px", padding: "4px 10px",
+                                  background: n.sent ? "#34c759" : "#25d366",
+                                  opacity: publishingId === n.id ? 0.6 : 1,
+                                  cursor: publishingId === n.id ? "not-allowed" : "pointer",
+                                }}
+                                disabled={publishingId === n.id}
+                                onClick={() => handlePublish(n.id)}
+                                title={n.sent ? "Re-broadcast to WhatsApp" : "Broadcast to WhatsApp Channel"}
+                              >
+                                {publishingId === n.id ? "…" : n.sent ? "Re-send" : "Publish"}
+                              </button>
+                            </div>
+                            {/* Publish result feedback */}
+                            {pub && (
+                              <p style={{ margin: "4px 0 0", fontSize: "11px", color: pub.success ? "#1a7a3a" : "#a00000", fontWeight: 500 }}>
+                                {pub.message}
+                              </p>
+                            )}
+                          </td>
+                        </tr>
+                        {/* Expanded WhatsApp preview row */}
+                        {isExpanded && (
+                          <tr key={`${n.id}-expand`} style={{ background: "#f5f5f7" }}>
+                            <td colSpan={7} style={{ padding: "12px 16px" }}>
+                              <p style={{ margin: "0 0 6px", fontWeight: 600, fontSize: "12px", color: "#86868b", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                WhatsApp Message Preview
+                              </p>
+                              <pre style={{ margin: 0, padding: "12px", background: "#fff", border: "1px solid #d2d2d7", borderRadius: "6px", fontSize: "12px", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: "200px", overflowY: "auto" }}>
+                                {n.whatsapp_message || "No WhatsApp message generated."}
+                              </pre>
+                              {n.whatsapp_message && (
+                                <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+                                  <button
+                                    className="btn-secondary btn-sm"
+                                    style={{ fontSize: "11px" }}
+                                    onClick={() => { navigator.clipboard.writeText(n.whatsapp_message!); }}
+                                  >
+                                    Copy
+                                  </button>
+                                  <a
+                                    href={`https://wa.me/?text=${encodeURIComponent(n.whatsapp_message)}`}
+                                    target="_blank" rel="noopener noreferrer"
+                                    className="btn-secondary btn-sm"
+                                    style={{ fontSize: "11px", textDecoration: "none", color: "#25d366", borderColor: "#25d366" }}
+                                  >
+                                    Open in WhatsApp Web
+                                  </a>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </main>
+
 
       <Footer />
 

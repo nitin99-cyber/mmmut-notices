@@ -22,7 +22,7 @@
 import { getGeminiClient } from "./gemini";
 import { PDFDocument } from "pdf-lib";
 import { generateCalendarUrl, type CalendarEvent } from "./calendar";
-import { formatWhatsAppMessage } from "./whatsapp";
+import { formatWhatsAppMessage, removeStudentTable } from "./whatsapp";
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -136,6 +136,7 @@ For example, if registration is July 1 to July 18, set the 'date' to '2026-07-18
 
 Rules:
 - Translation must be COMPLETE — do not skip any part of the notice.
+- For a LARGE NOTICE, translation means the notice heading, purpose, instructions, dates, and authority text only. Never reproduce student names, roll numbers, enrollment numbers, form numbers, or any table rows.
 - If specific branches (CSE, ECE, ME) are mentioned, include them in audience.
 - If specific years (1st year, 2nd year) are mentioned, include "B.Tech Xth Year".
 - If general, use "All Students".
@@ -212,7 +213,7 @@ export async function processNoticeFromVision(
     pdfUrl?: string;
   } = {}
 ): Promise<ProcessedNotice> {
-  let { imageBase64 } = options;
+  const { imageBase64 } = options;
   const {
     isLargeNotice = false,
     pageCount = 1,
@@ -448,7 +449,10 @@ export async function parseAIResponse(raw: string, context: { pdfUrl?: string, i
       category: NOTICE_CATEGORIES.includes(data.category) ? data.category : "Other",
       audience: Array.isArray(data.audience) ? data.audience.map(String) : ["All Students"],
       summary: String(data.summary || "No summary available."),
-      english_translation: String(data.english_translation || "Translation not available."),
+      english_translation: removeStudentTable(
+        String(data.english_translation || "Translation not available."),
+        !!context.isLargeNotice,
+      ),
       important_dates: Array.isArray(data.important_dates) ? data.important_dates.map(String) : [],
       calendar_events: calendarEvents,
       whatsapp_message: "", // Will be overwritten below

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  whatsapp:
+    build: 
+      context: ./whatsapp-service
+    container_name: mmmut-whatsapp-api
+    ports:
+      - "2785:2785"
+    volumes:
+      # Mount the authentication folder so you don't have to scan the QR code every time the container restarts
+      - ./whatsapp-service/.wwebjs_auth:/app/.wwebjs_auth
+    restart: unless-stopped
