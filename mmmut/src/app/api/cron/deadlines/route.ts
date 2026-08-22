@@ -54,14 +54,15 @@ export async function GET(request: Request) {
           deadline.title,
           deadline.date,
           deadline.category,
-          deadline.description
+          deadline.description,
+          deadline.reminder_message
         );
         if (emailSent) processedEmailIds.push(deadline.id);
       }
 
       // 2. Send WhatsApp Channel broadcast if not sent and OpenWA is configured
       if (!deadline.whatsapp_sent && openwaConfig) {
-        const reminderMsg = `🚨 *REMINDER: Upcoming Deadline Tomorrow!* 🚨\n\n📌 *${deadline.title}*\n📅 *Date:* ${deadline.date}\n📂 *Category:* ${deadline.category}${deadline.description ? `\n📝 *Details:* ${deadline.description}` : ''}\n\n⚠️ Please ensure you complete this process before the deadline.\n━━━━━━━━━━━━━━━━━\n_MMMUT Notice Intelligence_`;
+        const reminderMsg = deadline.reminder_message || `🚨 *REMINDER: Upcoming Deadline Tomorrow!* 🚨\n\n📌 *${deadline.title}*\n📅 *Date:* ${deadline.date}\n📂 *Category:* ${deadline.category}${deadline.description ? `\n📝 *Details:* ${deadline.description}` : ''}\n\n⚠️ Please ensure you complete this process before the deadline.\n━━━━━━━━━━━━━━━━━\n_MMMUT Notice Intelligence_`;
         const waResult = await sendWhatsAppText(reminderMsg);
         if (waResult.success) {
           processedWhatsAppIds.push(deadline.id);
