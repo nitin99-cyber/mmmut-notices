@@ -212,7 +212,11 @@ export default function AdminNoticesPage() {
   };
 
   const handleFile = (f: File) => {
-    if (f.type === "application/pdf" || f.name.endsWith(".pdf")) {
+    if (
+  f.type === "application/pdf" || 
+  f.type.startsWith("image/") || 
+  f.name.match(/\.(pdf|jpe?g|png)$/i)
+) {
       setFile(f);
       setResult(null);
       setPipelineLog({ stages: [] });
@@ -476,7 +480,7 @@ export default function AdminNoticesPage() {
                 <input
                   ref={inputRef}
                   type="file"
-                  accept=".pdf"
+                  accept=".pdf,image/png,image/jpeg"
                   style={{ display: "none" }}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
                 />

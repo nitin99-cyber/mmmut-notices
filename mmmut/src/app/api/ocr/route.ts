@@ -14,12 +14,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!file.name.endsWith(".pdf")) {
-      return NextResponse.json(
-        { success: false, error: "Only PDF files are accepted" },
-        { status: 400 }
-      );
-    }
+    if (!file.name.match(/\.(pdf|jpe?g|png)$/i)) {
+  return NextResponse.json({ success: false, error: "Only PDF, JPG, and PNG files are accepted" }, { status: 400 });
+}
 
     // Step 1: Check OCR health
     const health = await checkOcrHealth();

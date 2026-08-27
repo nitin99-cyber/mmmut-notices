@@ -211,6 +211,7 @@ export async function processNoticeFromVision(
     isLargeNotice?: boolean;
     pageCount?: number;
     pdfUrl?: string;
+    mimeType?: string;
   } = {}
 ): Promise<ProcessedNotice> {
   const { imageBase64 } = options;
@@ -253,7 +254,7 @@ ${isLargeNotice ? "\n⚠️ This is a LARGE NOTICE — only the first page is pr
         { text: userPrompt },
         {
           inlineData: {
-            mimeType: "application/pdf",
+            mimeType: options.mimeType ||"application/pdf",
             data: base64Pdf,
           },
         },

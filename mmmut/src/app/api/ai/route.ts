@@ -44,6 +44,7 @@ export async function POST(request: Request) {
           isLargeNotice,
           pageCount,
           pdfUrl,
+          mimeType: file.type,
         });
       } else {
         if (!ocrText) throw new Error("OCR text is required for text processing");
