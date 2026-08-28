@@ -15,22 +15,17 @@ export const config = {
 export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
-  // 1. Allow public access to the homepage and /deadlines page
-  if (url.pathname === '/' ) {
+  // 1. Allow public access to the homepage
+  if (url.pathname === '/') {
     return NextResponse.next();
   }
 
-  // 2. Allow GET requests to /api/deadlines to pass through without auth
-  if (url.pathname.startsWith('/api/deadlines') && req.method === 'GET') {
-    return NextResponse.next();
-  }
-
-  // 3. Allow Vercel Cron to access /api/cron
+  // 2. Allow Vercel Cron to access /api/cron
   if (url.pathname.startsWith('/api/cron')) {
     return NextResponse.next();
   }
 
-  // 4. For all other pages and APIs, require Basic Authentication
+  // 3. For all other pages and APIs, require Basic Authentication
   const basicAuth = req.headers.get('authorization');
 
   if (basicAuth) {
