@@ -1,0 +1,32 @@
+warning: in the working copy of 'mmmut/.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/admin/notices/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/api/ai/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/api/cron/deadlines/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/api/dashboard/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/api/generate-reminder/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/app/deadlines/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/lib/email.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/lib/geminiProcessor.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/src/lib/whatsapp.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/supabase_migration_v2.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mmmut/vercel.json', LF will be replaced by CRLF the next time Git touches it
+ docs/Distribution.md                         |    48 [32m+[m[31m-[m
+ mmmut/.gitignore                             |    17 [32m+[m[31m-[m
+ mmmut/package-lock.json                      | 14637 [32m+++++++++++++++++++[m[31m------[m
+ mmmut/package.json                           |     1 [32m+[m
+ mmmut/src/app/admin/notices/page.tsx         |   354 [32m+[m[31m-[m
+ mmmut/src/app/api/ai/route.ts                |    91 [32m+[m[31m-[m
+ mmmut/src/app/api/cron/deadlines/route.ts    |    70 [32m+[m[31m-[m
+ mmmut/src/app/api/dashboard/route.ts         |     9 [32m+[m[31m-[m
+ mmmut/src/app/api/generate-reminder/route.ts |    16 [32m+[m[31m-[m
+ mmmut/src/app/dashboard/page.tsx             |     3 [32m+[m[31m-[m
+ mmmut/src/app/deadlines/page.tsx             |    19 [32m+[m[31m-[m
+ mmmut/src/lib/email.ts                       |    12 [32m+[m[31m-[m
+ mmmut/src/lib/geminiProcessor.ts             |    10 [32m+[m[31m-[m
+ mmmut/src/lib/whatsapp.ts                    |   267 [32m+[m[31m-[m
+ mmmut/supabase_migration_v2.sql              |    22 [32m+[m[31m-[m
+ mmmut/vercel.json                            |     2 [32m+[m[31m-[m
+ 16 files changed, 11996 insertions(+), 3582 deletions(-)

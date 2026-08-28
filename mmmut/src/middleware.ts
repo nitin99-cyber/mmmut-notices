@@ -16,7 +16,7 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
   // 1. Allow public access to the homepage and /deadlines page
-  if (url.pathname === '/' || url.pathname === '/deadlines' || url.pathname.startsWith('/deadlines/')) {
+  if (url.pathname === '/' ) {
     return NextResponse.next();
   }
 
