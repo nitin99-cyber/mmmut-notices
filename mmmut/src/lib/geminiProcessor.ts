@@ -176,6 +176,7 @@ Respond with the JSON structure as instructed.`;
       config: {
         systemInstruction: buildSystemPrompt(isLargeNotice),
         temperature: 0.2,
+        responseMimeType: "application/json",
       },
     });
     raw = response.text ?? "";
@@ -262,6 +263,7 @@ ${isLargeNotice ? "\n⚠️ This is a LARGE NOTICE — only the first page is pr
       config: {
         systemInstruction: buildSystemPrompt(isLargeNotice),
         temperature: 0.2,
+        responseMimeType: "application/json",
       },
     });
     raw = response.text ?? "";
@@ -420,14 +422,33 @@ interface ParsedResponse {
 
 export async function parseAIResponse(raw: string, context: { pdfUrl?: string, isLargeNotice?: boolean }): Promise<ParsedResponse> {
   let cleaned = raw.trim();
+  // Strip markdown code blocks
   if (cleaned.startsWith("```")) {
     cleaned = cleaned
       .replace(/^```(?:json)?\s*\n?/, "")
       .replace(/\n?```\s*$/, "");
   }
 
+  // Extract JSON object if there's surrounding text
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (match) {
+    cleaned = match[0];
+  }
+
+  // Optional: Sometimes models output literal unescaped tabs which break JSON.parse
+  cleaned = cleaned.replace(/\t/g, "  ");
+
   try {
-    const data = JSON.parse(cleaned);
+    let data;
+    try {
+      data = JSON.parse(cleaned);
+    } catch (parseErr) {
+      // If parsing fails, try to aggressively fix unescaped newlines in the string
+      // This is a naive fix for the most common LLM JSON error: literal newlines in strings
+      console.warn("⚠️ Standard JSON.parse failed, attempting to fix unescaped newlines...");
+      const fixed = cleaned.replace(/\n/g, "\\n").replace(/\r/g, "\\r");
+      data = JSON.parse(fixed);
+    }
 
     // Parse calendar events with URL generation
     const calendarEvents: CalendarEvent[] = [];
