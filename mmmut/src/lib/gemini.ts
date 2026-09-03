@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
  * Only created when actually needed (not at module load time).
  */
 let _ai: GoogleGenAI | null = null;
+let _aiFallback: GoogleGenAI | null = null;
 
 export function getGeminiClient(): GoogleGenAI {
   if (_ai) return _ai;
@@ -19,4 +20,12 @@ export function getGeminiClient(): GoogleGenAI {
 
   _ai = new GoogleGenAI({ apiKey });
   return _ai;
+}
+
+export function getGeminiFallbackClient(): GoogleGenAI | null {
+  if (_aiFallback) return _aiFallback;
+  const apiKey = process.env.GEMINI_FALLBACK_API_KEY;
+  if (!apiKey) return null;
+  _aiFallback = new GoogleGenAI({ apiKey });
+  return _aiFallback;
 }

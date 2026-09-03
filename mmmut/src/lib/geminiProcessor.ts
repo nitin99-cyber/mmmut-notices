@@ -19,7 +19,7 @@
  *   - WhatsApp-ready message with calendar links
  */
 
-import { getGeminiClient } from "./gemini";
+import { getGeminiClient, getGeminiFallbackClient } from "./gemini";
 import { PDFDocument } from "pdf-lib";
 import { generateCalendarUrl, type CalendarEvent } from "./calendar";
 import { formatWhatsAppMessage, removeStudentTable } from "./whatsapp";
@@ -181,15 +181,31 @@ Respond with the JSON structure as instructed.`;
     });
     raw = response.text ?? "";
   } catch (error) {
-    console.warn(
-      "⚠️ Gemini Text API failed, falling back to Groq...",
-      error instanceof Error ? error.message : error
-    );
-    method = "groq_text";
-    raw = await callGroqText(
-      buildSystemPrompt(isLargeNotice),
-      userPrompt
-    );
+    console.warn("⚠️ Primary Gemini Text API failed:", error instanceof Error ? error.message : error);
+    const aiFallback = getGeminiFallbackClient();
+    if (aiFallback) {
+      console.log("🔄 Retrying with Gemini Fallback API Key...");
+      try {
+        const fallbackResponse = await aiFallback.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ text: userPrompt }],
+          config: {
+            systemInstruction: buildSystemPrompt(isLargeNotice),
+            temperature: 0.2,
+            responseMimeType: "application/json",
+          },
+        });
+        raw = fallbackResponse.text ?? "";
+      } catch (fallbackError) {
+        console.warn("⚠️ Gemini Fallback Text API failed, falling back to Groq...", fallbackError instanceof Error ? fallbackError.message : fallbackError);
+        method = "groq_text";
+        raw = await callGroqText(buildSystemPrompt(isLargeNotice), userPrompt);
+      }
+    } else {
+      console.warn("⚠️ No Gemini fallback key available, falling back to Groq...");
+      method = "groq_text";
+      raw = await callGroqText(buildSystemPrompt(isLargeNotice), userPrompt);
+    }
   }
 
   const parsed = await parseAIResponse(raw, { pdfUrl: options.pdfUrl, isLargeNotice });
@@ -268,24 +284,50 @@ ${isLargeNotice ? "\n⚠️ This is a LARGE NOTICE — only the first page is pr
     });
     raw = response.text ?? "";
   } catch (error) {
-    console.warn(
-      "⚠️ Gemini Vision API failed, falling back to Groq Vision...",
-      error instanceof Error ? error.message : error
-    );
-    method = "groq_vision";
-
-    if (!imageBase64) {
-      throw new Error(
-        "Gemini Vision failed and no image is available for Groq Vision fallback. " +
-        "Ensure EasyOCR is running locally so it can provide image_base64, or fix Gemini API access."
-      );
+    console.warn("⚠️ Primary Gemini Vision API failed:", error instanceof Error ? error.message : error);
+    
+    let fallbackSuccess = false;
+    const aiFallback = getGeminiFallbackClient();
+    if (aiFallback) {
+      console.log("🔄 Retrying with Gemini Fallback API Key (Vision)...");
+      try {
+        const fallbackResponse = await aiFallback.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [
+            { text: userPrompt },
+            {
+              inlineData: {
+                mimeType: options.mimeType || "application/pdf",
+                data: base64Pdf,
+              },
+            },
+          ],
+          config: {
+            systemInstruction: buildSystemPrompt(isLargeNotice),
+            temperature: 0.2,
+            responseMimeType: "application/json",
+          },
+        });
+        raw = fallbackResponse.text ?? "";
+        fallbackSuccess = true;
+      } catch (fallbackError) {
+        console.warn("⚠️ Gemini Fallback Vision API failed:", fallbackError instanceof Error ? fallbackError.message : fallbackError);
+      }
+    } else {
+      console.warn("⚠️ No Gemini fallback key available for Vision.");
     }
 
-    raw = await callGroqVision(
-      buildSystemPrompt(isLargeNotice),
-      userPrompt,
-      imageBase64
-    );
+    if (!fallbackSuccess) {
+      console.warn("⚠️ Falling back to Groq Vision...");
+      method = "groq_vision";
+      if (!imageBase64) {
+        throw new Error(
+          "Gemini Vision failed and no image is available for Groq Vision fallback. " +
+          "Ensure EasyOCR is running locally so it can provide image_base64, or fix Gemini API access."
+        );
+      }
+      raw = await callGroqVision(buildSystemPrompt(isLargeNotice), userPrompt, imageBase64);
+    }
   }
 
   const parsed = await parseAIResponse(raw, { pdfUrl: options.pdfUrl, isLargeNotice });
