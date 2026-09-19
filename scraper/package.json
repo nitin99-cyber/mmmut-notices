@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "scrape": "tsx src/index.ts",
-    "scrape:dry": "tsx src/index.ts --dry-run"
+    "scrape": "tsx --env-file=.env src/index.ts",
+    "scrape:dry": "tsx --env-file=.env src/index.ts --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

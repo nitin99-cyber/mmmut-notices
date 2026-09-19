@@ -81,6 +81,7 @@ async function main(): Promise<void> {
       // Fast duplicate check by URL (no download needed)
       const urlCheck = await checkDuplicate(notice.pdf_url, null);
       if (urlCheck.isDuplicate) {
+        console.log(`🔁 Duplicate by url_match: ${notice.title}`);
         dupCount++;
         continue;
       }
