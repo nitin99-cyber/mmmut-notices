@@ -25,6 +25,15 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // 3. Allow internal scraper pipeline routes (called by the local scraper process)
+  if (
+    url.pathname.startsWith('/api/ocr') ||
+    url.pathname.startsWith('/api/ai') ||
+    url.pathname.startsWith('/api/notices/publish')
+  ) {
+    return NextResponse.next();
+  }
+
   // 3. For all other pages and APIs, require Basic Authentication
   const basicAuth = req.headers.get('authorization');
 

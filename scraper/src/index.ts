@@ -159,8 +159,16 @@ async function main(): Promise<void> {
       const pipelineSuccess = await triggerAIPipeline(pdfBuffer, notice.pdf_url, notice.title);
       
       if (pipelineSuccess) {
-        // If the automated pipeline succeeded, mark the job as completed so it doesn't show as pending
+        // Mark job completed and scraped_notice as processed
         await markJobCompleted(jobId);
+        await supabase
+          .from('scraped_notices')
+          .update({ status: 'processed' })
+          .eq('id', data.id);
+        console.log(`🎉 Pipeline complete! Notice processed & email sent.`);
+      } else {
+        // Leave status as 'new' so reprocess-pending can pick it up
+        console.log(`⚠️  Pipeline failed. Notice left as 'new' for manual reprocessing.`);
       }
       
     } catch (err) {

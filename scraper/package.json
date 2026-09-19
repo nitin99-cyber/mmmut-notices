@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "scrape": "tsx --env-file=.env src/index.ts",
-    "scrape:dry": "tsx --env-file=.env src/index.ts --dry-run"
+    "scrape:dry": "tsx --env-file=.env src/index.ts --dry-run",
+    "reprocess": "tsx --env-file=.env src/reprocess-pending.ts",
+    "check-pending": "tsx --env-file=.env src/check-pending.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
