@@ -3,7 +3,7 @@ import { supabase } from './supabase.js';
 const { data, error } = await supabase
   .from('scraped_notices')
   .select('id, title, pdf_url, status, created_at')
-  .in('status', ['new', 'pending'])
+  .in('status', ['new', 'pending', 'failed'])
   .order('created_at', { ascending: false })
   .limit(30);
 
