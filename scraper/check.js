@@ -1,1 +1,0 @@
-fetch('https://www.mmmut.ac.in/ExaminationSchedule').then(r=>r.text()).then(t => { const cheerio = require('cheerio'); const $ = cheerio.load(t); console.log('GridView1:', $('#ContentPlaceHolder2_GridView1').length); console.log('GridView2:', $('#ContentPlaceHolder2_GridView2').length); console.log('Links:', $('a[href]').length); })
