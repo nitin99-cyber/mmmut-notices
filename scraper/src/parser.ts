@@ -5,7 +5,7 @@
  */
 
 import * as cheerio from 'cheerio';
-import { SCRAPE_URL } from './config.js';
+
 
 /** Metadata extracted from a single notice entry on the page */
 export interface NoticeMetadata {
@@ -78,13 +78,13 @@ function extractDate(text: string): string {
  * @param html - Raw HTML string of the AllRecord page
  * @returns Array of parsed notice metadata objects
  */
-export function parseNoticePage(html: string): NoticeMetadata[] {
+export function parseNoticePage(html: string, sourceUrl: string): NoticeMetadata[] {
   const $ = cheerio.load(html);
   const notices: NoticeMetadata[] = [];
   const seenUrls = new Set<string>();
 
-  // Strategy 1: Find all anchor tags specifically inside the main announcements grid or the news marquee
-  $('#ContentPlaceHolder2_GridView1 a[href], marquee a[href]').each((_index, element) => {
+  // Find all anchor tags, we will filter for PDFs below
+  $('a[href]').each((_index, element) => {
     try {
       const el = $(element);
       const href = el.attr('href') ?? '';
@@ -146,7 +146,7 @@ export function parseNoticePage(html: string): NoticeMetadata[] {
         title,
         pdf_url: pdfUrl,
         publish_date: publishDate,
-        source_url: SCRAPE_URL,
+        source_url: sourceUrl,
       });
     } catch (err) {
       console.warn(`⚠️  Warning: Failed to parse a notice entry, skipping.`, err);

@@ -14,7 +14,7 @@
  */
 
 import {
-  SCRAPE_URL,
+  SCRAPE_URLS,
   MAX_NOTICES_PER_RUN,
   DRY_RUN,
   STEALTH_HEADERS,
@@ -39,33 +39,43 @@ async function main(): Promise<void> {
     console.log('🧪 DRY RUN mode — no database writes or PDF downloads');
   }
 
-  // ─── Step 1: Fetch the notices page ────────────────────────────────
-  console.log(`📡 Fetching ${SCRAPE_URL}...`);
+  // ─── Step 1 & 2: Fetch and parse notices from all URLs ─────────────
+  let notices: any[] = [];
+  
+  for (const url of SCRAPE_URLS) {
+    console.log(`\n📡 Fetching ${url}...`);
 
-  const response = await fetch(SCRAPE_URL, {
-    headers: {
-      ...STEALTH_HEADERS,
-      Accept: 'text/html,application/xhtml+xml',
-    },
-    signal: AbortSignal.timeout(30_000),
-  });
+    try {
+      const response = await fetch(url, {
+        headers: {
+          ...STEALTH_HEADERS,
+          Accept: 'text/html,application/xhtml+xml',
+        },
+        signal: AbortSignal.timeout(30_000),
+      });
 
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch notices page: HTTP ${response.status} ${response.statusText}`
-    );
+      if (!response.ok) {
+        console.error(`❌ Failed to fetch ${url}: HTTP ${response.status} ${response.statusText}`);
+        continue;
+      }
+
+      const html = await response.text();
+      console.log(`📄 Received ${(html.length / 1024).toFixed(1)} KB of HTML from ${url}`);
+
+      const pageNotices = parseNoticePage(html, url);
+      console.log(`📋 Found ${pageNotices.length} notices on this page`);
+      
+      notices.push(...pageNotices);
+    } catch (err) {
+      console.error(`❌ Error fetching ${url}:`, err);
+    }
   }
-
-  const html = await response.text();
-  console.log(`📄 Received ${(html.length / 1024).toFixed(1)} KB of HTML`);
-
-  // ─── Step 2: Parse notices ─────────────────────────────────────────
-  const notices = parseNoticePage(html);
-  console.log(`📋 Found ${notices.length} notices on page`);
 
   if (notices.length === 0) {
-    console.warn('⚠️  No notices found — page structure may have changed');
+    console.warn('\n⚠️  No notices found across any of the URLs — page structures may have changed');
+    return;
   }
+
 
   // Limit per run to stay within rate limits
   const toProcess = notices.slice(0, MAX_NOTICES_PER_RUN);

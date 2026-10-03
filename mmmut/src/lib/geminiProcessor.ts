@@ -135,7 +135,8 @@ For processes with a start date and an end date (e.g., fee submission, registrat
 For example, if registration is July 1 to July 18, set the 'date' to '2026-07-18' and title it 'Registration Deadline'.
 
 Rules:
-- Translation must be COMPLETE — do not skip any part of the notice.
+- Translation must be COMPLETE — do not skip any part of the notice, EXCEPT for the standard footer boilerplate.
+- Do NOT include the standard footer boilerplate (e.g., "P.S. and Date: As above.", "Copy forwarded for information and necessary action to:", "Webmaster", "Nodal Officer", dates at the very end, etc.) in the \`english_translation\`.
 - For a LARGE NOTICE, translation means the notice heading, purpose, instructions, dates, and authority text only. Never reproduce student names, roll numbers, enrollment numbers, form numbers, or any table rows.
 - If specific branches (CSE, ECE, ME) are mentioned, include them in audience.
 - If specific years (1st year, 2nd year) are mentioned, include "B.Tech Xth Year".
