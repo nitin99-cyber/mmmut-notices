@@ -5,8 +5,7 @@
 
 /** URL of the MMMUT notices listing page to scrape */
 export const SCRAPE_URLS = [
-  'https://www.mmmut.ac.in/AllRecord',
-  'https://www.mmmut.ac.in/ExaminationSchedule'
+  'https://www.mmmut.ac.in/AllRecord'
 ];
 
 /** Supabase project URL — required env var */
