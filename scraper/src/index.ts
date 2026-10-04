@@ -93,6 +93,11 @@ async function main(): Promise<void> {
   // ─── Step 3–5: Process each notice ─────────────────────────────────
   for (const notice of toProcess) {
     try {
+      if (notice.pdf_url.includes('ExaminationSchedule')) {
+        console.log(`🚫 Skipping blocked URL: ${notice.pdf_url}`);
+        continue;
+      }
+
       // Fast duplicate check by URL (no download needed)
       const urlCheck = await checkDuplicate(notice.pdf_url, null);
 

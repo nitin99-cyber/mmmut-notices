@@ -21,7 +21,7 @@ export async function triggerAIPipeline(
     
     // Create FormData for OCR
     const ocrFormData = new FormData();
-    const pdfBlob = new Blob([pdfBuffer], { type: 'application/pdf' });
+    const pdfBlob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
     ocrFormData.append('file', pdfBlob, 'notice.pdf');
 
     const ocrRes = await fetch(`${API_BASE_URL}/api/ocr`, {
