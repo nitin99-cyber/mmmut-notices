@@ -105,6 +105,17 @@ async function main(): Promise<void> {
               .eq('id', existingRecord.id);
 
             const pdfBuffer = await downloadPdf(notice.pdf_url);
+
+            if (pdfBuffer.length > 4.2 * 1024 * 1024) {
+              console.warn(`   ⚠️ Notice PDF is ${(pdfBuffer.length / (1024 * 1024)).toFixed(2)} MB (exceeds Vercel 4.5 MB limit). Marked as 'size_exceeded'.`);
+              await supabase
+                .from('scraped_notices')
+                .update({ status: 'size_exceeded' })
+                .eq('id', existingRecord.id);
+              failCount++;
+              continue;
+            }
+
             const pipelineSuccess = await triggerAIPipeline(pdfBuffer, notice.pdf_url, notice.title);
 
             if (pipelineSuccess) {
@@ -192,6 +203,23 @@ async function main(): Promise<void> {
       if (hashCheck.isDuplicate) {
         console.log(`🔁 Duplicate by ${hashCheck.reason}: ${notice.title}`);
         dupCount++;
+        continue;
+      }
+
+      // ── Check if PDF exceeds Vercel serverless size limit (4.5 MB) ──
+      if (pdfBuffer.length > 4.2 * 1024 * 1024) {
+        console.warn(`⚠️ Notice PDF is ${(pdfBuffer.length / (1024 * 1024)).toFixed(2)} MB (exceeds Vercel 4.5 MB limit). Saved as 'size_exceeded': ${notice.title}`);
+        await supabase
+          .from('scraped_notices')
+          .insert({
+            title: notice.title,
+            pdf_url: notice.pdf_url,
+            source_url: notice.source_url,
+            publish_date: notice.publish_date || null,
+            pdf_hash: hash,
+            status: 'size_exceeded',
+          });
+        failCount++;
         continue;
       }
 

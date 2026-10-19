@@ -16,6 +16,13 @@ export async function triggerAIPipeline(
   console.log(`🤖 Triggering automated AI pipeline for: ${title}`);
 
   try {
+    // ─── Guard: Vercel Serverless Payload Limit (4.5 MB) ─────────────
+    if (pdfBuffer.length > 4.2 * 1024 * 1024) {
+      console.warn(`   ⚠️ PDF size is ${(pdfBuffer.length / (1024 * 1024)).toFixed(2)} MB, which exceeds Vercel's 4.5 MB serverless limit.`);
+      console.warn(`   ⚠️ Skipping automated HTTP upload. Please process this notice manually in the admin dashboard.`);
+      return false;
+    }
+
     // ─── Step 1: Hit OCR API ───────────────────────────────────────
     console.log(`   ➡️ POST ${API_BASE_URL}/api/ocr`);
     
