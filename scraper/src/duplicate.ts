@@ -15,7 +15,7 @@ export interface DuplicateCheckResult {
    * If a URL match was found, the existing record's id and processing status.
    * Used by the caller to decide whether to re-trigger the AI pipeline.
    */
-  existingRecord?: { id: string; status: string };
+  existingRecord?: { id: string; status: string; created_at?: string };
 }
 
 /**
@@ -37,7 +37,7 @@ export async function checkDuplicate(
   // Phase 1: Check by exact URL match (fast, always performed)
   const { data: urlMatch, error: urlError } = await supabase
     .from('scraped_notices')
-    .select('id, status')
+    .select('id, status, created_at')
     .eq('pdf_url', pdfUrl)
     .limit(1)
     .maybeSingle();
@@ -52,7 +52,7 @@ export async function checkDuplicate(
     return {
       isDuplicate: true,
       reason: 'url_match',
-      existingRecord: { id: urlMatch.id, status: urlMatch.status },
+      existingRecord: { id: urlMatch.id, status: urlMatch.status, created_at: urlMatch.created_at },
     };
   }
 
@@ -60,7 +60,7 @@ export async function checkDuplicate(
   if (pdfHash) {
     const { data: hashMatch, error: hashError } = await supabase
       .from('scraped_notices')
-      .select('id, status')
+      .select('id, status, created_at')
       .eq('pdf_hash', pdfHash)
       .limit(1)
       .maybeSingle();
@@ -74,7 +74,7 @@ export async function checkDuplicate(
       return {
         isDuplicate: true,
         reason: 'hash_match',
-        existingRecord: { id: hashMatch.id, status: hashMatch.status },
+      existingRecord: { id: hashMatch.id, status: hashMatch.status, created_at: hashMatch.created_at },
       };
     }
   }

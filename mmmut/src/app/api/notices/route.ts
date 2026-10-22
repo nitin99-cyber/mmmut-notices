@@ -175,15 +175,41 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     };
   });
 
+  // Keep scraper-discovered notices visible even when OCR/AI has not run yet,
+  // or when persistence to `notices` failed. Previously these records existed
+  // only in scraped_notices and appeared to disappear from the dashboard.
+  const noticePdfUrls = new Set(notices.map((notice) => notice.pdf_url).filter(Boolean));
+  const scraperOnlyNotices = scrapedNotices
+    .filter((scraped) => scraped.pdf_url && !noticePdfUrls.has(scraped.pdf_url))
+    .map((scraped) => ({
+      id: `scraped:${scraped.id}`,
+      title: scraped.title,
+      category: null,
+      audience: null,
+      summary: null,
+      english_translation: null,
+      whatsapp_message: null,
+      processing_method: null,
+      pdf_url: scraped.pdf_url,
+      is_large_notice: null,
+      page_count: null,
+      calendar_events: null,
+      created_at: scraped.created_at,
+      sent: false,
+      pipeline_log: null,
+      scraped_notice: scraped,
+      processing_job: jobsByNoticeId.get(scraped.id) ?? null,
+    } satisfies Notice));
+
   // ------------------------------------------------------------------
   // 5. Return response
   // ------------------------------------------------------------------
   return NextResponse.json(
     {
       success: true,
-      data: enrichedNotices,
+      data: [...enrichedNotices, ...scraperOnlyNotices],
       meta: {
-        total: enrichedNotices.length,
+        total: enrichedNotices.length + scraperOnlyNotices.length,
         scraped_notices_count: scrapedNotices.length,
         processing_jobs_count: processingJobs.length,
         warnings: warnings.length > 0 ? warnings : undefined,

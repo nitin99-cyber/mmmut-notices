@@ -34,7 +34,7 @@ async function forceProcess() {
          console.log("Already exists in scraped_notices. Fetching ID...");
          const { data: existing } = await supabase.from('scraped_notices').select('id').eq('pdf_hash', hash).single();
          if (existing) {
-             const jobId = await createProcessingJob(existing.id);
+             const jobId = await createProcessingJob(existing.id, url);
              console.log(`Created processing job ID: ${jobId}`);
              const success = await triggerAIPipeline(pdfBuffer, url, title);
              if (success) {
@@ -47,7 +47,7 @@ async function forceProcess() {
       }
     } else {
        console.log(`Inserted into scraped_notices with ID: ${scrapedNotice.id}`);
-       const jobId = await createProcessingJob(scrapedNotice.id);
+       const jobId = await createProcessingJob(scrapedNotice.id, url);
        console.log(`Created processing job ID: ${jobId}`);
        
        // Trigger pipeline

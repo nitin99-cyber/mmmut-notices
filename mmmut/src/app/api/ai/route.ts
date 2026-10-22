@@ -263,7 +263,7 @@ export async function POST(request: Request) {
         ? { saved: true, id: dbResult.id }
         : { saved: false, error: dbError },
       email: emailStatus,
-    });
+    }, { status: dbResult ? 200 : 500 });
   } catch (err) {
     return NextResponse.json(
       {

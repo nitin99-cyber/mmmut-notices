@@ -79,6 +79,12 @@ export async function triggerAIPipeline(
       throw new Error(`AI Processing Failed: ${aiData.error || aiData.details}`);
     }
 
+    // The API can complete AI generation but still fail to persist the notice.
+    // Do not let the scraper mark such a record as processed.
+    if (aiData.database?.saved !== true) {
+      throw new Error(`AI response did not confirm database save: ${aiData.database?.error || 'unknown persistence error'}`);
+    }
+
     console.log(`   ✅ AI Pipeline Complete! Notice saved in DB and email sent.`);
     return true;
 

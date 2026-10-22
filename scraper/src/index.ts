@@ -29,7 +29,13 @@ import { logExecution, type ScraperResult } from './logger.js';
 import { triggerAIPipeline } from './pipeline.js';
 
 /** Statuses that mean the notice was scraped but never AI-processed */
-const UNPROCESSED_STATUSES = new Set(['new', 'pending', 'failed']);
+const UNPROCESSED_STATUSES = new Set(['new', 'pending', 'failed', 'download_failed', 'processing']);
+const STALE_PROCESSING_MS = 15 * 60 * 1000;
+
+function needsReprocessing(record: { status: string; created_at?: string }): boolean {
+  if (record.status !== 'processing') return UNPROCESSED_STATUSES.has(record.status);
+  return !!record.created_at && Date.now() - Date.parse(record.created_at) > STALE_PROCESSING_MS;
+}
 
 async function main(): Promise<void> {
   const startTime = Date.now();
@@ -92,7 +98,7 @@ async function main(): Promise<void> {
         // ── Self-healing: if it was never AI-processed, re-trigger pipeline ──
         if (
           existingRecord &&
-          UNPROCESSED_STATUSES.has(existingRecord.status) &&
+          needsReprocessing(existingRecord) &&
           !DRY_RUN
         ) {
           console.log(`♻️  Unprocessed notice found (status=${existingRecord.status}), re-triggering pipeline: ${notice.title}`);
@@ -195,12 +201,39 @@ async function main(): Promise<void> {
           failCount++;
           continue;
         }
+
+        // Keep failed downloads visible and retryable on the next run. The
+        // URL is unique, so later runs will enter the self-healing branch.
+        await supabase
+          .from('scraped_notices')
+          .upsert({
+            title: notice.title,
+            pdf_url: notice.pdf_url,
+            source_url: notice.source_url,
+            publish_date: notice.publish_date || null,
+            status: 'download_failed',
+          }, { onConflict: 'pdf_url', ignoreDuplicates: false });
         throw dlError;
       }
 
       // ── Content-hash duplicate check ──
       const hashCheck = await checkDuplicate(notice.pdf_url, hash);
       if (hashCheck.isDuplicate) {
+        // A URL change must not hide an unprocessed notice whose content hash
+        // already exists. Reuse the downloaded bytes and repair its state.
+        if (hashCheck.existingRecord && needsReprocessing(hashCheck.existingRecord) && !DRY_RUN) {
+          const record = hashCheck.existingRecord;
+          await supabase.from('scraped_notices').update({ status: 'processing' }).eq('id', record.id);
+          const pipelineSuccess = await triggerAIPipeline(pdfBuffer, notice.pdf_url, notice.title);
+          await supabase.from('scraped_notices').update({ status: pipelineSuccess ? 'processed' : 'failed' }).eq('id', record.id);
+          if (pipelineSuccess) {
+            reprocessedCount++;
+            newCount++;
+          } else {
+            failCount++;
+          }
+          continue;
+        }
         console.log(`🔁 Duplicate by ${hashCheck.reason}: ${notice.title}`);
         dupCount++;
         continue;
