@@ -212,6 +212,9 @@ async function main(): Promise<void> {
             source_url: notice.source_url,
             publish_date: notice.publish_date || null,
             status: 'download_failed',
+            retry_count: 0,
+            next_retry_at: new Date(Date.now() + 5 * 60_000).toISOString(),
+            last_error: dlError instanceof Error ? dlError.message.slice(0, 2000) : String(dlError).slice(0, 2000),
           }, { onConflict: 'pdf_url', ignoreDuplicates: false });
         throw dlError;
       }
@@ -293,7 +296,12 @@ async function main(): Promise<void> {
         console.log(`⚠️  Pipeline failed. Notice left as 'failed' for next run.`);
         await supabase
           .from('scraped_notices')
-          .update({ status: 'failed' })
+          .update({
+            status: 'failed',
+            retry_count: 0,
+            next_retry_at: new Date(Date.now() + 5 * 60_000).toISOString(),
+            last_error: 'AI pipeline failed during initial processing',
+          })
           .eq('id', data.id);
       }
 

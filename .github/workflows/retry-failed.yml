@@ -1,0 +1,40 @@
+name: Retry Failed MMMUT Notices
+
+on:
+  schedule:
+    # GitHub Actions supports a minimum practical schedule of every 5 minutes.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: notice-retry-worker
+  cancel-in-progress: false
+
+jobs:
+  retry-failed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: scraper/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./scraper
+        run: npm ci
+
+      - name: Retry failed notices only
+        working-directory: ./scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          API_BASE_URL: https://mmmut-notices.vercel.app
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: npm run retry-failed

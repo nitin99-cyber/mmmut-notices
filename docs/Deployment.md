@@ -284,6 +284,11 @@ Detect New Notice
 Create Processing Job
 ```
 
+The production scheduler also runs a separate failed-notice retry worker every
+5 minutes. It reads only retryable rows from `scraped_notices`; it does not
+rerun the full notice scrape. Retry delays are 5, 15, 30, 60, and 120 minutes,
+after which a notice is marked `retry_exhausted` for manual review.
+
 Never performs OCR.
 
 Never performs AI.

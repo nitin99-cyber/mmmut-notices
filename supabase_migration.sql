@@ -15,8 +15,21 @@ CREATE TABLE IF NOT EXISTS public.scraped_notices (
     pdf_hash TEXT UNIQUE,
     publish_date TEXT,
     status TEXT DEFAULT 'new',
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    next_retry_at TIMESTAMP WITH TIME ZONE,
+    last_error TEXT,
+    processing_started_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE public.scraped_notices
+ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN IF NOT EXISTS next_retry_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS last_error TEXT,
+ADD COLUMN IF NOT EXISTS processing_started_at TIMESTAMP WITH TIME ZONE;
+
+CREATE INDEX IF NOT EXISTS scraped_notices_retry_idx
+ON public.scraped_notices (status, next_retry_at);
 
 -- Create processing_jobs table if it doesn't exist
 CREATE TABLE IF NOT EXISTS public.processing_jobs (
