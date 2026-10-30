@@ -1,12 +1,20 @@
 import { API_BASE_URL } from './config.js';
+import { compressPdf } from './compress.js';
 
 /**
  * Automatically triggers the Next.js AI pipeline for a scraped notice.
  * Simulates a browser FormData upload to /api/ocr and then /api/ai.
  *
+ * Large PDFs are transparently compressed before upload:
+ *   1. Re-save with pdf-lib (removes bloat/metadata)
+ *   2. If still too large, extract page 1 only (safe — OCR & AI only use page 1)
+ *
+ * The original `pdfUrl` is always forwarded so the DB record links to the
+ * full notice on MMMUT's server, regardless of what we upload for processing.
+ *
  * @param pdfBuffer The downloaded PDF buffer
- * @param pdfUrl The URL of the PDF
- * @param title The scraped title of the notice
+ * @param pdfUrl    The original URL of the PDF (stored in DB)
+ * @param title     The scraped title of the notice
  */
 export async function triggerAIPipeline(
   pdfBuffer: Buffer,
@@ -16,19 +24,38 @@ export async function triggerAIPipeline(
   console.log(`🤖 Triggering automated AI pipeline for: ${title}`);
 
   try {
-    // ─── Guard: Vercel Serverless Payload Limit (4.5 MB) ─────────────
-    if (pdfBuffer.length > 4.2 * 1024 * 1024) {
-      console.warn(`   ⚠️ PDF size is ${(pdfBuffer.length / (1024 * 1024)).toFixed(2)} MB, which exceeds Vercel's 4.5 MB serverless limit.`);
-      console.warn(`   ⚠️ Skipping automated HTTP upload. Please process this notice manually in the admin dashboard.`);
+    // ─── Compress if needed (stays within Vercel free-plan 4.5 MB limit) ────
+    const compressed = await compressPdf(pdfBuffer);
+
+    if (compressed.strategy !== 'none') {
+      const saved = (
+        ((compressed.originalSize - compressed.finalSize) / compressed.originalSize) *
+        100
+      ).toFixed(1);
+      console.log(
+        `   🗜️  Compression strategy: ${compressed.strategy} | ` +
+        `${(compressed.originalSize / 1024 / 1024).toFixed(2)} MB → ` +
+        `${(compressed.finalSize / 1024 / 1024).toFixed(2)} MB (−${saved}%)`
+      );
+    }
+
+    // Hard stop: even after compression the PDF is still too large
+    if (compressed.finalSize > 4.2 * 1024 * 1024) {
+      console.warn(
+        `   ⚠️  PDF is ${(compressed.finalSize / 1024 / 1024).toFixed(2)} MB after ` +
+        `compression — still exceeds Vercel's 4.5 MB limit.`
+      );
+      console.warn(`   ⚠️  Skipping automated upload. Process this notice manually from the admin dashboard.`);
       return false;
     }
 
-    // ─── Step 1: Hit OCR API ───────────────────────────────────────
-    console.log(`   ➡️ POST ${API_BASE_URL}/api/ocr`);
-    
-    // Create FormData for OCR
+    const uploadBuffer = compressed.buffer;
+
+    // ─── Step 1: Hit OCR API ───────────────────────────────────────────────
+    console.log(`   ➡️  POST ${API_BASE_URL}/api/ocr`);
+
     const ocrFormData = new FormData();
-    const pdfBlob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
+    const pdfBlob = new Blob([new Uint8Array(uploadBuffer)], { type: 'application/pdf' });
     ocrFormData.append('file', pdfBlob, 'notice.pdf');
 
     const ocrRes = await fetch(`${API_BASE_URL}/api/ocr`, {
@@ -47,15 +74,17 @@ export async function triggerAIPipeline(
 
     console.log(`   ✅ OCR Complete. Decision: ${ocrData.decision.reason}`);
 
-    // ─── Step 2: Hit AI API ────────────────────────────────────────
-    console.log(`   ➡️ POST ${API_BASE_URL}/api/ai`);
-    
+    // ─── Step 2: Hit AI API ────────────────────────────────────────────────
+    console.log(`   ➡️  POST ${API_BASE_URL}/api/ai`);
+
     const aiFormData = new FormData();
     aiFormData.append('useVision', String(ocrData.decision.use_vision));
     aiFormData.append('pageCount', String(ocrData.ocr?.page_count || 1));
+    // Always send the ORIGINAL URL so the DB record links to the full PDF
     aiFormData.append('pdfUrl', pdfUrl);
-    
+
     if (ocrData.decision.use_vision) {
+      // Re-use the same (possibly compressed) blob
       aiFormData.append('file', pdfBlob, 'notice.pdf');
       if (ocrData.ocr?.image_base64) {
         aiFormData.append('imageBase64', ocrData.ocr.image_base64);
@@ -74,7 +103,7 @@ export async function triggerAIPipeline(
     }
 
     const aiData = await aiRes.json();
-    
+
     if (!aiData.success) {
       throw new Error(`AI Processing Failed: ${aiData.error || aiData.details}`);
     }
@@ -82,7 +111,9 @@ export async function triggerAIPipeline(
     // The API can complete AI generation but still fail to persist the notice.
     // Do not let the scraper mark such a record as processed.
     if (aiData.database?.saved !== true) {
-      throw new Error(`AI response did not confirm database save: ${aiData.database?.error || 'unknown persistence error'}`);
+      throw new Error(
+        `AI response did not confirm database save: ${aiData.database?.error || 'unknown persistence error'}`
+      );
     }
 
     console.log(`   ✅ AI Pipeline Complete! Notice saved in DB and email sent.`);
@@ -90,7 +121,7 @@ export async function triggerAIPipeline(
 
   } catch (error) {
     console.error(`   ❌ Automated Pipeline Failed:`, error instanceof Error ? error.message : String(error));
-    console.log(`   ⚠️ Notice remains in pending state. You can process it manually from the dashboard.`);
+    console.log(`   ⚠️  Notice remains in pending state. You can process it manually from the dashboard.`);
     return false;
   }
 }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @module index
  * Main entry point for the MMMUT Notice Scraper.
  *
@@ -6,7 +6,7 @@
  * 1. Fetch the AllRecord HTML page
  * 2. Parse notice metadata (titles, PDF URLs, dates)
  * 3. For each notice, check for duplicates by URL (fast, no download)
- *    → If URL exists but was NEVER processed (status new/pending/failed),
+ *    â†’ If URL exists but was NEVER processed (status new/pending/failed),
  *      re-trigger the AI pipeline automatically (self-healing).
  * 4. Download the PDF and check for duplicates by content hash
  * 5. Insert new notices into `scraped_notices` and create processing jobs
@@ -40,13 +40,13 @@ function needsReprocessing(record: { status: string; created_at?: string }): boo
 async function main(): Promise<void> {
   const startTime = Date.now();
 
-  console.log('🔍 MMMUT Notice Scraper starting...');
+  console.log('ðŸ” MMMUT Notice Scraper starting...');
   if (DRY_RUN) {
-    console.log('🧪 DRY RUN mode — no database writes or PDF downloads');
+    console.log('ðŸ§ª DRY RUN mode â€” no database writes or PDF downloads');
   }
 
-  // ─── Step 1: Fetch the notices page ────────────────────────────────
-  console.log(`📡 Fetching ${SCRAPE_URL}...`);
+  // â”€â”€â”€ Step 1: Fetch the notices page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  console.log(`ðŸ“¡ Fetching ${SCRAPE_URL}...`);
 
   const response = await fetch(SCRAPE_URL, {
     headers: {
@@ -63,21 +63,21 @@ async function main(): Promise<void> {
   }
 
   const html = await response.text();
-  console.log(`📄 Received ${(html.length / 1024).toFixed(1)} KB of HTML`);
+  console.log(`ðŸ“„ Received ${(html.length / 1024).toFixed(1)} KB of HTML`);
 
-  // ─── Step 2: Parse notices ─────────────────────────────────────────
+  // â”€â”€â”€ Step 2: Parse notices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const notices = parseNoticePage(html);
-  console.log(`📋 Found ${notices.length} notices on page`);
+  console.log(`ðŸ“‹ Found ${notices.length} notices on page`);
 
   if (notices.length === 0) {
-    console.warn('⚠️  No notices found — page structure may have changed');
+    console.warn('âš ï¸  No notices found â€” page structure may have changed');
   }
 
   // Limit per run to stay within rate limits
   const toProcess = notices.slice(0, MAX_NOTICES_PER_RUN);
   if (toProcess.length < notices.length) {
     console.log(
-      `📏 Processing first ${toProcess.length} of ${notices.length} (MAX_NOTICES_PER_RUN=${MAX_NOTICES_PER_RUN})`
+      `ðŸ“ Processing first ${toProcess.length} of ${notices.length} (MAX_NOTICES_PER_RUN=${MAX_NOTICES_PER_RUN})`
     );
   }
 
@@ -86,7 +86,7 @@ async function main(): Promise<void> {
   let failCount = 0;
   let reprocessedCount = 0;
 
-  // ─── Step 3–5: Process each notice ─────────────────────────────────
+  // â”€â”€â”€ Step 3â€“5: Process each notice â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   for (const notice of toProcess) {
     try {
       // Fast duplicate check by URL (no download needed)
@@ -95,13 +95,13 @@ async function main(): Promise<void> {
       if (urlCheck.isDuplicate && urlCheck.reason === 'url_match') {
         const { existingRecord } = urlCheck;
 
-        // ── Self-healing: if it was never AI-processed, re-trigger pipeline ──
+        // â”€â”€ Self-healing: if it was never AI-processed, re-trigger pipeline â”€â”€
         if (
           existingRecord &&
           needsReprocessing(existingRecord) &&
           !DRY_RUN
         ) {
-          console.log(`♻️  Unprocessed notice found (status=${existingRecord.status}), re-triggering pipeline: ${notice.title}`);
+          console.log(`â™»ï¸  Unprocessed notice found (status=${existingRecord.status}), re-triggering pipeline: ${notice.title}`);
 
           try {
             // Mark as 'processing' to prevent double-runs
@@ -112,15 +112,15 @@ async function main(): Promise<void> {
 
             const pdfBuffer = await downloadPdf(notice.pdf_url);
 
-            if (pdfBuffer.length > 4.2 * 1024 * 1024) {
-              console.warn(`   ⚠️ Notice PDF is ${(pdfBuffer.length / (1024 * 1024)).toFixed(2)} MB (exceeds Vercel 4.5 MB limit). Marked as 'size_exceeded'.`);
-              await supabase
-                .from('scraped_notices')
-                .update({ status: 'size_exceeded' })
-                .eq('id', existingRecord.id);
-              failCount++;
-              continue;
-            }
+            // Compression is handled inside triggerAIPipeline() -- no pre-check needed
+
+
+
+
+
+
+
+
 
             const pipelineSuccess = await triggerAIPipeline(pdfBuffer, notice.pdf_url, notice.title);
 
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
                 .from('scraped_notices')
                 .update({ status: 'processed' })
                 .eq('id', existingRecord.id);
-              console.log(`   🎉 Pipeline succeeded! Notice processed & email sent.`);
+              console.log(`   ðŸŽ‰ Pipeline succeeded! Notice processed & email sent.`);
               reprocessedCount++;
               newCount++;
             } else {
@@ -138,7 +138,7 @@ async function main(): Promise<void> {
                 .from('scraped_notices')
                 .update({ status: 'failed' })
                 .eq('id', existingRecord.id);
-              console.log(`   ❌ Pipeline failed. Will retry on next run.`);
+              console.log(`   âŒ Pipeline failed. Will retry on next run.`);
               failCount++;
             }
           } catch (reprocessErr) {
@@ -147,38 +147,38 @@ async function main(): Promise<void> {
               .from('scraped_notices')
               .update({ status: 'failed' })
               .eq('id', existingRecord.id);
-            console.error(`   ❌ Re-process error: ${reprocessErr instanceof Error ? reprocessErr.message : reprocessErr}`);
+            console.error(`   âŒ Re-process error: ${reprocessErr instanceof Error ? reprocessErr.message : reprocessErr}`);
             failCount++;
           }
           continue;
         }
 
-        // Truly processed already — skip silently (only log on DRY_RUN for clarity)
+        // Truly processed already â€” skip silently (only log on DRY_RUN for clarity)
         if (DRY_RUN) {
-          console.log(`🔁 Duplicate (${existingRecord?.status ?? 'processed'}): ${notice.title}`);
+          console.log(`ðŸ” Duplicate (${existingRecord?.status ?? 'processed'}): ${notice.title}`);
         }
         dupCount++;
         continue;
       }
 
-      // ── Hash duplicate: same content at a different URL ──
+      // â”€â”€ Hash duplicate: same content at a different URL â”€â”€
       if (urlCheck.isDuplicate && urlCheck.reason === 'hash_match') {
         dupCount++;
         continue;
       }
 
-      // ── In dry-run mode, stop here ──
+      // â”€â”€ In dry-run mode, stop here â”€â”€
       if (DRY_RUN) {
-        console.log(`[DRY RUN] 🆕 New notice: ${notice.title}`);
+        console.log(`[DRY RUN] ðŸ†• New notice: ${notice.title}`);
         newCount++;
         continue;
       }
 
-      // Add a small random jitter (1–3 s) to disguise bot behavior
+      // Add a small random jitter (1â€“3 s) to disguise bot behavior
       const jitterMs = Math.floor(Math.random() * 2000) + 1000;
       await new Promise((resolve) => setTimeout(resolve, jitterMs));
 
-      // ── Download PDF ──
+      // â”€â”€ Download PDF â”€â”€
       let pdfBuffer: Buffer;
       let hash = '';
 
@@ -187,7 +187,7 @@ async function main(): Promise<void> {
         hash = computeHash(pdfBuffer);
       } catch (dlError) {
         if (dlError instanceof Error && dlError.message.includes('404')) {
-          console.warn(`☠️ Dead link (404), skipping future scrapes: ${notice.title}`);
+          console.warn(`â˜ ï¸ Dead link (404), skipping future scrapes: ${notice.title}`);
           await supabase
             .from('scraped_notices')
             .insert({
@@ -219,7 +219,7 @@ async function main(): Promise<void> {
         throw dlError;
       }
 
-      // ── Content-hash duplicate check ──
+      // â”€â”€ Content-hash duplicate check â”€â”€
       const hashCheck = await checkDuplicate(notice.pdf_url, hash);
       if (hashCheck.isDuplicate) {
         // A URL change must not hide an unprocessed notice whose content hash
@@ -237,29 +237,29 @@ async function main(): Promise<void> {
           }
           continue;
         }
-        console.log(`🔁 Duplicate by ${hashCheck.reason}: ${notice.title}`);
+        console.log(`ðŸ” Duplicate by ${hashCheck.reason}: ${notice.title}`);
         dupCount++;
         continue;
       }
 
-      // ── Check if PDF exceeds Vercel serverless size limit (4.5 MB) ──
-      if (pdfBuffer.length > 4.2 * 1024 * 1024) {
-        console.warn(`⚠️ Notice PDF is ${(pdfBuffer.length / (1024 * 1024)).toFixed(2)} MB (exceeds Vercel 4.5 MB limit). Saved as 'size_exceeded': ${notice.title}`);
-        await supabase
-          .from('scraped_notices')
-          .insert({
-            title: notice.title,
-            pdf_url: notice.pdf_url,
-            source_url: notice.source_url,
-            publish_date: notice.publish_date || null,
-            pdf_hash: hash,
-            status: 'size_exceeded',
-          });
-        failCount++;
-        continue;
-      }
+      // Compression is handled inside triggerAIPipeline() -- no pre-check needed
 
-      // ── Insert into scraped_notices ──
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      // â”€â”€ Insert into scraped_notices â”€â”€
       const { data, error } = await supabase
         .from('scraped_notices')
         .insert({
@@ -280,9 +280,9 @@ async function main(): Promise<void> {
       const jobId = await createProcessingJob(data.id, notice.pdf_url);
 
       newCount++;
-      console.log(`✅ New notice saved: ${notice.title}`);
+      console.log(`âœ… New notice saved: ${notice.title}`);
 
-      // ── Trigger AI Pipeline ──
+      // â”€â”€ Trigger AI Pipeline â”€â”€
       const pipelineSuccess = await triggerAIPipeline(pdfBuffer, notice.pdf_url, notice.title);
 
       if (pipelineSuccess) {
@@ -291,9 +291,9 @@ async function main(): Promise<void> {
           .from('scraped_notices')
           .update({ status: 'processed' })
           .eq('id', data.id);
-        console.log(`🎉 Pipeline complete! Notice processed & email sent.`);
+        console.log(`ðŸŽ‰ Pipeline complete! Notice processed & email sent.`);
       } else {
-        console.log(`⚠️  Pipeline failed. Notice left as 'failed' for next run.`);
+        console.log(`âš ï¸  Pipeline failed. Notice left as 'failed' for next run.`);
         await supabase
           .from('scraped_notices')
           .update({
@@ -308,13 +308,13 @@ async function main(): Promise<void> {
     } catch (err) {
       failCount++;
       console.error(
-        `❌ Failed: ${notice.title}`,
+        `âŒ Failed: ${notice.title}`,
         err instanceof Error ? err.message : err
       );
     }
   }
 
-  // ─── Step 6: Log execution summary ─────────────────────────────────
+  // â”€â”€â”€ Step 6: Log execution summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const result: ScraperResult = {
     total_found: notices.length,
     new_notices: newCount,
@@ -324,7 +324,7 @@ async function main(): Promise<void> {
   };
 
   if (reprocessedCount > 0) {
-    console.log(`\n♻️  Re-processed ${reprocessedCount} previously stuck notice(s).`);
+    console.log(`\nâ™»ï¸  Re-processed ${reprocessedCount} previously stuck notice(s).`);
   }
 
   await logExecution(result);
@@ -333,11 +333,11 @@ async function main(): Promise<void> {
   console.log(`  New:        ${result.new_notices}`);
   console.log(`  Duplicates: ${result.duplicates}`);
   console.log(`  Failures:   ${result.failures}`);
-  console.log('\n🏁 Scraper finished:', result);
+  console.log('\nðŸ Scraper finished:', result);
 }
 
 // Run and exit with appropriate code
 main().catch((err) => {
-  console.error('💥 Fatal error:', err);
+  console.error('ðŸ’¥ Fatal error:', err);
   process.exit(1);
 });
