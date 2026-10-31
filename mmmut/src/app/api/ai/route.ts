@@ -206,11 +206,13 @@ export async function POST(request: Request) {
 
           const deadlineInserts = await Promise.all(deadlinesToSave.map(async (evt) => {
             const prompt = `Title: ${evt.title}\nDate: ${evt.date}\nDescription: ${evt.description || notice.title}\nCategory: ${validCategory}`;
-            let reminderMessage = notice.whatsapp_message;
+            let reminderMessage: string;
             try {
               reminderMessage = await generateGroqReminderMessage(prompt);
             } catch (err) {
-              console.warn("Failed to generate Groq reminder for deadline, using default notice message:", err);
+              console.warn("Failed to generate Groq reminder for deadline, using short fallback:", err);
+              // Build a concise fallback — do NOT use the full whatsapp_message
+              reminderMessage = `📢 *MMMUT REMINDER*\n\n📌 *${evt.title}*\n📅 *Date:* ${evt.date}\n${evt.description ? `📝 *Details:* ${evt.description}\n` : ''}⚠️ Please complete this before the deadline.\n\n_MMMUT Notice Intelligence_`;
             }
             return {
               notice_id: savedNotice.id,
